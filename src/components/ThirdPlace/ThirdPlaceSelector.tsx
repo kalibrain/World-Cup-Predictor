@@ -1,6 +1,7 @@
 import { useApp } from '../../context/AppContext';
 import { TEAM_MAP, GROUP_LETTERS } from '../../data/teams';
 import { assignThirdPlaceTeams } from '../../utils/thirdPlaceAssignment';
+import { FlagIcon } from '../FlagIcon';
 
 export function ThirdPlaceSelector() {
   const { state, toggleThirdPlace, confirmThirdPlace, goBackToGroups, isViewOnly } = useApp();
@@ -45,7 +46,7 @@ export function ThirdPlaceSelector() {
               disabled={isViewOnly}
             >
               <div className="third-group-badge">Group {letter}</div>
-              <div className="third-team-flag">{team.flag}</div>
+              <div className="third-team-flag"><FlagIcon countryCode={team.countryCode} teamName={team.name} size={32} /></div>
               <div className="third-team-name">{team.name}</div>
               {isSelected && <div className="third-check">✓</div>}
             </button>

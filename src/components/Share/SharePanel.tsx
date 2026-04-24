@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { buildShareUrl } from '../../utils/urlEncoding';
 import { TEAM_MAP } from '../../data/teams';
+import { FlagIcon } from '../FlagIcon';
 
 export function SharePanel() {
   const { state, isViewOnly, resetApp, goToStep } = useApp();
@@ -56,7 +57,7 @@ export function SharePanel() {
             <div className="share-pick champion-pick">
               <div className="pick-label">🥇 World Champion</div>
               <div className="pick-team">
-                <span className="pick-flag">{championTeam.flag}</span>
+                <span className="pick-flag"><FlagIcon countryCode={championTeam.countryCode} teamName={championTeam.name} size={28} /></span>
                 <span className="pick-name">{championTeam.name}</span>
               </div>
             </div>
@@ -65,7 +66,7 @@ export function SharePanel() {
             <div className="share-pick runner-up-pick">
               <div className="pick-label">🥈 Runner-up</div>
               <div className="pick-team">
-                <span className="pick-flag">{runnerUpTeam.flag}</span>
+                <span className="pick-flag"><FlagIcon countryCode={runnerUpTeam.countryCode} teamName={runnerUpTeam.name} size={28} /></span>
                 <span className="pick-name">{runnerUpTeam.name}</span>
               </div>
             </div>
@@ -74,7 +75,7 @@ export function SharePanel() {
             <div className="share-pick">
               <div className="pick-label">🥉 3rd Place</div>
               <div className="pick-team">
-                <span className="pick-flag">{thirdPlaceTeam.flag}</span>
+                <span className="pick-flag"><FlagIcon countryCode={thirdPlaceTeam.countryCode} teamName={thirdPlaceTeam.name} size={28} /></span>
                 <span className="pick-name">{thirdPlaceTeam.name}</span>
               </div>
             </div>

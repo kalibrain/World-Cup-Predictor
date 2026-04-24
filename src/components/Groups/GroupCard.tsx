@@ -18,6 +18,7 @@ import { CSS } from '@dnd-kit/utilities';
 import type { Group } from '../../types';
 import { TEAM_MAP } from '../../data/teams';
 import { useApp } from '../../context/AppContext';
+import { FlagIcon } from '../FlagIcon';
 
 interface SortableTeamProps {
   id: string;
@@ -54,7 +55,7 @@ function SortableTeam({ id, rank, isViewOnly }: SortableTeamProps) {
       <div className="team-drag-handle" aria-hidden="true">
         {!isViewOnly && <span className="drag-icon">⠿</span>}
       </div>
-      <div className="team-flag">{team?.flag}</div>
+      <div className="team-flag">{team && <FlagIcon countryCode={team.countryCode} teamName={team.name} size={24} />}</div>
       <div className="team-name">{team?.name}</div>
     </div>
   );

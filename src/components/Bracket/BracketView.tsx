@@ -1,6 +1,7 @@
 import { useApp } from '../../context/AppContext';
 import { BracketMatch } from './BracketMatch';
 import { TEAM_MAP } from '../../data/teams';
+import { FlagIcon } from '../FlagIcon';
 
 interface RoundColumnProps {
   title: string;
@@ -43,7 +44,7 @@ export function BracketView() {
         </p>
         {championTeam && (
           <div className="champion-banner">
-            🏆 Champion: {championTeam.flag} {championTeam.name}
+            🏆 Champion: <FlagIcon countryCode={championTeam.countryCode} teamName={championTeam.name} size={24} /> {championTeam.name}
           </div>
         )}
       </div>

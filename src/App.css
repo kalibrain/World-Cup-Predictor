@@ -672,6 +672,15 @@ html, body {
   font-size: 22px;
   flex-shrink: 0;
   line-height: 1;
+  display: flex;
+  align-items: center;
+}
+
+.flag-icon {
+  display: inline-block;
+  vertical-align: middle;
+  border-radius: 2px;
+  object-fit: cover;
 }
 
 .team-name {

@@ -1,6 +1,7 @@
 import type { Match } from '../../types';
 import { TEAM_MAP } from '../../data/teams';
 import { useApp } from '../../context/AppContext';
+import { FlagIcon } from '../FlagIcon';
 
 interface BracketMatchProps {
   match: Match;
@@ -45,7 +46,7 @@ export function BracketMatch({ match, showDate, isFinal, is3PO }: BracketMatchPr
       >
         {team1 ? (
           <>
-            <span className="slot-flag">{team1.flag}</span>
+            <span className="slot-flag"><FlagIcon countryCode={team1.countryCode} teamName={team1.name} size={20} /></span>
             <span className="slot-name">{team1.name}</span>
             {isSlot1Winner && isFinal && <span className="champion-trophy">🏆</span>}
           </>
@@ -62,7 +63,7 @@ export function BracketMatch({ match, showDate, isFinal, is3PO }: BracketMatchPr
       >
         {team2 ? (
           <>
-            <span className="slot-flag">{team2.flag}</span>
+            <span className="slot-flag"><FlagIcon countryCode={team2.countryCode} teamName={team2.name} size={20} /></span>
             <span className="slot-name">{team2.name}</span>
             {isSlot2Winner && isFinal && <span className="champion-trophy">🏆</span>}
           </>
