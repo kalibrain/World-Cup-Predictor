@@ -124,22 +124,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
-  const confirmThirdPlace = useCallback(() => {
-    setState(prev => {
-      if (prev.selectedThirdPlace.length !== 8) return prev;
+  const seedBracketFromThirdPlace = useCallback((prev: AppState): AppState | null => {
+    if (prev.selectedThirdPlace.length !== 8) return null;
 
-      const assignment = assignThirdPlaceTeams(prev.selectedThirdPlace);
-      if (!assignment) return prev;
+    const assignment = assignThirdPlaceTeams(prev.selectedThirdPlace);
+    if (!assignment) return null;
 
-      // Build R32 slots from group rankings + third place assignment
-      const newMatches = { ...prev.matches };
+    // Build R32 slots from group rankings + third place assignment
+    const newMatches = { ...prev.matches };
 
-      // Helper to get team id by group and rank (0-indexed)
-      const getTeamByRank = (groupId: string, rank: number): string | null => {
-        const group = prev.groups[groupId];
-        if (!group || group.rankings.length <= rank) return null;
-        return group.rankings[rank];
-      };
+    // Helper to get team id by group and rank (0-indexed)
+    const getTeamByRank = (groupId: string, rank: number): string | null => {
+      const group = prev.groups[groupId];
+      if (!group || group.rankings.length <= rank) return null;
+      return group.rankings[rank];
+    };
 
       // M1: Winner Group E vs 3rd from assigned group
       newMatches['M1'] = { ...newMatches['M1'],
@@ -258,11 +257,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
         ...prev,
         thirdPlaceAssignment: assignment,
         matches: newMatches,
+      };
+  }, []);
+
+  const confirmThirdPlace = useCallback(() => {
+    setState(prev => {
+      const seeded = seedBracketFromThirdPlace(prev);
+      if (!seeded) return prev;
+      return {
+        ...seeded,
         step: 'bracket',
         furthestStep: stepIndex('bracket') > stepIndex(prev.furthestStep) ? 'bracket' : prev.furthestStep,
       };
     });
-  }, []);
+  }, [seedBracketFromThirdPlace]);
 
   const goBackToGroups = useCallback(() => {
     setState(prev => ({ ...prev, step: 'groups' }));
@@ -274,9 +282,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (stepIndex(step) > stepIndex(prev.furthestStep)) return prev;
       // Can't go to intro
       if (step === 'intro') return prev;
+      // When navigating to bracket from third-place, re-seed the bracket
+      if (step === 'bracket' && prev.step === 'third-place') {
+        const seeded = seedBracketFromThirdPlace(prev);
+        if (!seeded) return prev;
+        return {
+          ...seeded,
+          step: 'bracket',
+          furthestStep: stepIndex('bracket') > stepIndex(prev.furthestStep) ? 'bracket' : prev.furthestStep,
+        };
+      }
       return { ...prev, step };
     });
-  }, []);
+  }, [seedBracketFromThirdPlace]);
 
   const recomputeBracket = useCallback(() => {
     // Recompute all downstream match slots based on winners
