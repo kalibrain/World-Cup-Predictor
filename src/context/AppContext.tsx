@@ -4,6 +4,7 @@ import { createInitialGroups } from '../data/teams';
 import { createInitialMatches, BRACKET_FEED } from '../data/bracket';
 import { assignThirdPlaceTeams } from '../utils/thirdPlaceAssignment';
 import { getSharedStateFromUrl } from '../utils/urlEncoding';
+import { useAuth } from './AuthContext';
 
 const STEP_ORDER: AppStep[] = ['intro', 'groups', 'third-place', 'bracket', 'share'];
 
@@ -44,6 +45,7 @@ interface AppContextValue {
 const AppContext = createContext<AppContextValue | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
   const sharedState = getSharedStateFromUrl();
   const isViewOnly = sharedState !== null;
 
@@ -66,13 +68,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const startBracket = useCallback((name: string) => {
+    if (!user || !name.trim()) return;
+
     setState(prev => ({
       ...prev,
-      bracketName: name,
+      bracketName: name.trim(),
       step: 'groups',
       furthestStep: stepIndex('groups') > stepIndex(prev.furthestStep) ? 'groups' : prev.furthestStep,
     }));
-  }, []);
+  }, [user]);
 
   const updateGroupRankings = useCallback((groupId: string, rankings: string[]) => {
     setState(prev => {

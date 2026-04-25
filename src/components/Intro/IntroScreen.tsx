@@ -1,13 +1,27 @@
 import { useState } from 'react';
 import { useApp } from '../../context/AppContext';
+import { useAuth } from '../../context/AuthContext';
 
 export function IntroScreen() {
   const { startBracket } = useApp();
+  const { user, isLoading, signInWithGoogle } = useAuth();
   const [name, setName] = useState('');
+  const [authError, setAuthError] = useState<string | null>(null);
+
+  const isAuthenticated = Boolean(user);
+  const signedInEmail = user?.email ?? 'Google user';
 
   const handleStart = () => {
-    if (name.trim()) {
+    if (isAuthenticated && name.trim()) {
       startBracket(name.trim());
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setAuthError(null);
+    const error = await signInWithGoogle();
+    if (error) {
+      setAuthError(error);
     }
   };
 
@@ -27,25 +41,50 @@ export function IntroScreen() {
         </p>
       </div>
       <div className="intro-form">
-        <label className="form-label" htmlFor="bracket-name">Name Your Bracket</label>
-        <input
-          id="bracket-name"
-          className="form-input"
-          type="text"
-          placeholder="e.g. Mike's Bracket"
-          value={name}
-          onChange={e => setName(e.target.value)}
-          onKeyDown={handleKeyDown}
-          maxLength={50}
-          autoFocus
-        />
-        <button
-          className="btn btn-gold btn-lg"
-          onClick={handleStart}
-          disabled={!name.trim()}
-        >
-          Start Predicting →
-        </button>
+        {!isAuthenticated && (
+          <>
+            <div className="intro-auth-title">Sign in to create your bracket</div>
+            <p className="intro-auth-note">
+              Your bracket will be tied to your account so you can return and update it later.
+            </p>
+            <button
+              className="btn btn-gold btn-lg"
+              onClick={() => void handleGoogleSignIn()}
+              disabled={isLoading}
+            >
+              {isLoading ? 'Checking session...' : 'Continue with Google'}
+            </button>
+            {authError && <p className="intro-auth-error">{authError}</p>}
+          </>
+        )}
+
+        {isAuthenticated && (
+          <>
+            <div className="intro-auth-title">You are signed in</div>
+            <p className="intro-auth-note">
+              Signed in as <span className="intro-user-pill">{signedInEmail}</span>
+            </p>
+            <label className="form-label" htmlFor="bracket-name">Name Your Bracket</label>
+            <input
+              id="bracket-name"
+              className="form-input"
+              type="text"
+              placeholder="e.g. Mike's Bracket"
+              value={name}
+              onChange={e => setName(e.target.value)}
+              onKeyDown={handleKeyDown}
+              maxLength={50}
+              autoFocus
+            />
+            <button
+              className="btn btn-gold btn-lg"
+              onClick={handleStart}
+              disabled={!name.trim()}
+            >
+              Start Predicting →
+            </button>
+          </>
+        )}
       </div>
       <div className="intro-steps">
         <div className="intro-step">

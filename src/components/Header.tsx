@@ -1,7 +1,9 @@
 import { useApp } from '../context/AppContext';
+import { useAuth } from '../context/AuthContext';
 
 export function Header() {
   const { state, isViewOnly, goToShare, resetApp } = useApp();
+  const { user, isLoading, signOut } = useAuth();
 
   const handleShare = () => {
     goToShare();
@@ -9,6 +11,7 @@ export function Header() {
 
   const canShare = state.step !== 'intro';
   const showShare = !isViewOnly && canShare && state.step !== 'share';
+  const signedInLabel = user?.email ?? user?.user_metadata.full_name ?? 'Signed in';
 
   return (
     <header className="app-header">
@@ -23,6 +26,14 @@ export function Header() {
           </div>
         </div>
         <div className="header-right">
+          {!isViewOnly && !isLoading && user && (
+            <>
+              <div className="user-badge">{signedInLabel}</div>
+              <button className="btn btn-outline btn-sm" onClick={() => void signOut()}>
+                Sign Out
+              </button>
+            </>
+          )}
           {state.bracketName && (
             <div className="bracket-name-badge">{state.bracketName}</div>
           )}

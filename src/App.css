@@ -131,6 +131,20 @@ html, body {
   gap: 12px;
 }
 
+.user-badge {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--text);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .bracket-name-badge {
   background: var(--gold-dim);
   border: 1px solid var(--gold);
@@ -438,6 +452,29 @@ html, body {
   border-radius: var(--radius);
   padding: 28px;
   margin-bottom: 32px;
+}
+
+.intro-auth-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.intro-auth-note {
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+.intro-auth-error {
+  color: #fca5a5;
+  font-size: 14px;
+  margin-top: 14px;
+}
+
+.intro-user-pill {
+  color: var(--gold);
+  font-weight: 600;
 }
 
 .intro-steps {
