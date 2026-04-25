@@ -2,7 +2,17 @@ import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 
 export function Header() {
-  const { state, isViewOnly, goToShare, resetApp } = useApp();
+  const {
+    state,
+    isViewOnly,
+    isLocked,
+    isReadOnly,
+    selectedTournament,
+    isSaving,
+    goToShare,
+    resetApp,
+    clearTournamentSelection,
+  } = useApp();
   const { user, isLoading, signOut } = useAuth();
 
   const handleShare = () => {
@@ -10,8 +20,8 @@ export function Header() {
   };
 
   const canShare = state.step !== 'intro';
-  const showShare = !isViewOnly && canShare && state.step !== 'share';
-  const signedInLabel = user?.email ?? user?.user_metadata.full_name ?? 'Signed in';
+  const showShare = !isReadOnly && canShare && state.step !== 'share';
+  const signedInLabel = user?.email ?? user?.user_metadata?.full_name ?? 'Signed in';
 
   return (
     <header className="app-header">
@@ -34,8 +44,22 @@ export function Header() {
               </button>
             </>
           )}
+          {selectedTournament && (
+            <div className="bracket-name-badge">
+              {selectedTournament.tournament_name}
+              {isLocked ? ' (Locked)' : ''}
+            </div>
+          )}
+          {!isViewOnly && selectedTournament && state.step !== 'intro' && (
+            <button className="btn btn-outline btn-sm" onClick={clearTournamentSelection}>
+              Switch Tournament
+            </button>
+          )}
           {state.bracketName && (
             <div className="bracket-name-badge">{state.bracketName}</div>
+          )}
+          {isSaving && !isViewOnly && (
+            <div className="header-saving">Saving...</div>
           )}
           {showShare && (
             <button className="btn btn-gold btn-sm" onClick={handleShare}>

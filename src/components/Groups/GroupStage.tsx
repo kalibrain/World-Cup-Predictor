@@ -3,7 +3,7 @@ import { GroupCard } from './GroupCard';
 import { GROUP_LETTERS } from '../../data/teams';
 
 export function GroupStage() {
-  const { state, goToThirdPlace, isViewOnly } = useApp();
+  const { state, goToThirdPlace, isReadOnly } = useApp();
 
   return (
     <div className="group-stage">
@@ -20,7 +20,7 @@ export function GroupStage() {
         ))}
       </div>
 
-      {!isViewOnly && (
+      {!isReadOnly && (
         <div className="stage-footer">
           <button className="btn btn-gold btn-lg" onClick={goToThirdPlace}>
             Proceed to Third Place Selection →

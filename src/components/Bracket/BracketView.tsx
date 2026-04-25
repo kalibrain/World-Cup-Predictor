@@ -26,7 +26,7 @@ function RoundColumn({ title, matchIds, showDate }: RoundColumnProps) {
 }
 
 export function BracketView() {
-  const { state, isViewOnly, goToShare, goToStep } = useApp();
+  const { state, isReadOnly, goToShare, goToStep } = useApp();
 
   const finalMatch = state.matches['FINAL'];
   const tpoMatch = state.matches['3PO'];
@@ -78,7 +78,7 @@ export function BracketView() {
         </div>
       </div>
 
-      {!isViewOnly && (
+      {!isReadOnly && (
         <div className="stage-footer">
           <button className="btn btn-outline" onClick={() => goToStep('third-place')}>
             ← Back to 3rd Place

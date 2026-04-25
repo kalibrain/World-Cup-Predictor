@@ -4,7 +4,7 @@ import { assignThirdPlaceTeams } from '../../utils/thirdPlaceAssignment';
 import { FlagIcon } from '../FlagIcon';
 
 export function ThirdPlaceSelector() {
-  const { state, toggleThirdPlace, confirmThirdPlace, goBackToGroups, isViewOnly } = useApp();
+  const { state, toggleThirdPlace, confirmThirdPlace, goBackToGroups, isReadOnly } = useApp();
 
   const selectedCount = state.selectedThirdPlace.length;
   const canProceed = selectedCount === 8;
@@ -42,8 +42,8 @@ export function ThirdPlaceSelector() {
             <button
               key={letter}
               className={`third-place-card ${isSelected ? 'selected' : ''} ${isDisabled ? 'disabled-card' : ''}`}
-              onClick={() => !isViewOnly && !isDisabled && toggleThirdPlace(letter)}
-              disabled={isViewOnly}
+              onClick={() => !isReadOnly && !isDisabled && toggleThirdPlace(letter)}
+              disabled={isReadOnly}
             >
               <div className="third-group-badge">Group {letter}</div>
               <div className="third-team-flag"><FlagIcon countryCode={team.countryCode} teamName={team.name} size={32} /></div>
@@ -61,7 +61,7 @@ export function ThirdPlaceSelector() {
         </div>
       )}
 
-      {!isViewOnly && (
+      {!isReadOnly && (
         <div className="stage-footer stage-footer-split">
           <button className="btn btn-outline" onClick={goBackToGroups}>
             ← Back to Groups

@@ -11,13 +11,13 @@ interface BracketMatchProps {
 }
 
 export function BracketMatch({ match, showDate, isFinal, is3PO }: BracketMatchProps) {
-  const { pickMatchWinner, isViewOnly } = useApp();
+  const { pickMatchWinner, isReadOnly } = useApp();
 
   const team1 = match.slot1.teamId ? TEAM_MAP[match.slot1.teamId] : null;
   const team2 = match.slot2.teamId ? TEAM_MAP[match.slot2.teamId] : null;
 
   const handlePick = (teamId: string | null) => {
-    if (isViewOnly) return;
+    if (isReadOnly) return;
     if (!teamId) return;
     if (!match.slot1.teamId || !match.slot2.teamId) return; // both slots need teams
     pickMatchWinner(match.id, teamId);
@@ -25,7 +25,7 @@ export function BracketMatch({ match, showDate, isFinal, is3PO }: BracketMatchPr
 
   const isSlot1Winner = match.winnerId && match.winnerId === match.slot1.teamId;
   const isSlot2Winner = match.winnerId && match.winnerId === match.slot2.teamId;
-  const canPick = !isViewOnly && !!match.slot1.teamId && !!match.slot2.teamId;
+  const canPick = !isReadOnly && !!match.slot1.teamId && !!match.slot2.teamId;
 
   return (
     <div className={`bracket-match ${isFinal ? 'final-match' : ''} ${is3PO ? 'third-place-match' : ''}`}>

@@ -23,10 +23,10 @@ import { FlagIcon } from '../FlagIcon';
 interface SortableTeamProps {
   id: string;
   rank: number;
-  isViewOnly: boolean;
+  isReadOnly: boolean;
 }
 
-function SortableTeam({ id, rank, isViewOnly }: SortableTeamProps) {
+function SortableTeam({ id, rank, isReadOnly }: SortableTeamProps) {
   const team = TEAM_MAP[id];
   const {
     attributes,
@@ -35,7 +35,7 @@ function SortableTeam({ id, rank, isViewOnly }: SortableTeamProps) {
     transform,
     transition,
     isDragging,
-  } = useSortable({ id, disabled: isViewOnly });
+  } = useSortable({ id, disabled: isReadOnly });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -49,11 +49,11 @@ function SortableTeam({ id, rank, isViewOnly }: SortableTeamProps) {
       style={style}
       className={`team-row ${isDragging ? 'dragging' : ''}`}
       {...attributes}
-      {...(isViewOnly ? {} : listeners)}
+      {...(isReadOnly ? {} : listeners)}
     >
       <div className="team-rank">{rank}</div>
       <div className="team-drag-handle" aria-hidden="true">
-        {!isViewOnly && <span className="drag-icon">⠿</span>}
+        {!isReadOnly && <span className="drag-icon">⠿</span>}
       </div>
       <div className="team-flag">{team && <FlagIcon countryCode={team.countryCode} teamName={team.name} size={24} />}</div>
       <div className="team-name">{team?.name}</div>
@@ -66,7 +66,7 @@ interface GroupCardProps {
 }
 
 export function GroupCard({ group }: GroupCardProps) {
-  const { updateGroupRankings, isViewOnly } = useApp();
+  const { updateGroupRankings, isReadOnly } = useApp();
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -106,7 +106,7 @@ export function GroupCard({ group }: GroupCardProps) {
               key={teamId}
               id={teamId}
               rank={idx + 1}
-              isViewOnly={isViewOnly}
+              isReadOnly={isReadOnly}
             />
           ))}
         </SortableContext>
