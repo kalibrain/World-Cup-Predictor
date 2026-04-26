@@ -39,6 +39,8 @@ interface KnockoutRow {
   selected_third_place: string[];
   third_place_assignment: Record<string, string>;
   matches: Record<string, Match>;
+  total_goals: number | null;
+  top_scorer: string;
 }
 
 export interface LoadedBracket {
@@ -134,7 +136,7 @@ export async function fetchBracketForTournament(
       .eq('bracket_id', bracket.id),
     supabase
       .from('bracket_knockout_picks')
-      .select('selected_third_place, third_place_assignment, matches')
+      .select('selected_third_place, third_place_assignment, matches, total_goals, top_scorer')
       .eq('bracket_id', bracket.id)
       .maybeSingle(),
   ]);
@@ -167,6 +169,8 @@ export async function fetchBracketForTournament(
     selectedThirdPlace: knockout?.selected_third_place ?? [],
     thirdPlaceAssignment: knockout?.third_place_assignment ?? {},
     matches: mergeMatches(knockout?.matches),
+    totalGoals: knockout?.total_goals ?? null,
+    topScorer: knockout?.top_scorer ?? '',
   };
 
   return {
@@ -253,6 +257,8 @@ export async function saveBracketSnapshot(params: {
         selected_third_place: params.state.selectedThirdPlace,
         third_place_assignment: params.state.thirdPlaceAssignment,
         matches: params.state.matches,
+        total_goals: params.state.totalGoals,
+        top_scorer: params.state.topScorer,
       }, { onConflict: 'bracket_id' });
 
     if (knockoutError) {

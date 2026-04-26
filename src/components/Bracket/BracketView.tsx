@@ -26,7 +26,7 @@ function RoundColumn({ title, matchIds, showDate }: RoundColumnProps) {
 }
 
 export function BracketView() {
-  const { state, isReadOnly, goToStep } = useApp();
+  const { state, isReadOnly, goToStep, setTotalGoals, setTopScorer } = useApp();
 
   const finalMatch = state.matches['FINAL'];
   const tpoMatch = state.matches['3PO'];
@@ -73,6 +73,39 @@ export function BracketView() {
           <RoundColumn title="Quarterfinals" matchIds={['QF3','QF4']} />
           <RoundColumn title="Round of 16" matchIds={['R16_5','R16_6','R16_7','R16_8']} />
           <RoundColumn title="Round of 32" matchIds={['M9','M10','M11','M12','M13','M14','M15','M16']} showDate />
+        </div>
+      </div>
+
+      <div className="bracket-tiebreakers">
+        <div className="tiebreaker-field">
+          <label className="form-label" htmlFor="total-goals">Total Goals</label>
+          <input
+            id="total-goals"
+            className="form-input"
+            type="number"
+            min={0}
+            inputMode="numeric"
+            value={state.totalGoals ?? ''}
+            onChange={e => {
+              const v = e.target.value;
+              setTotalGoals(v === '' ? null : Math.max(0, Number(v)));
+            }}
+            disabled={isReadOnly}
+            placeholder="e.g. 168"
+          />
+        </div>
+        <div className="tiebreaker-field">
+          <label className="form-label" htmlFor="top-scorer">Top Scorer</label>
+          <input
+            id="top-scorer"
+            className="form-input"
+            type="text"
+            maxLength={60}
+            value={state.topScorer}
+            onChange={e => setTopScorer(e.target.value)}
+            disabled={isReadOnly}
+            placeholder="e.g. Kylian Mbappé"
+          />
         </div>
       </div>
 

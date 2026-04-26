@@ -1198,6 +1198,20 @@ html, body {
   margin-left: auto;
 }
 
+.bracket-tiebreakers {
+  width: 100%;
+  max-width: 420px;
+  box-sizing: border-box;
+  margin: 24px auto 0;
+  display: grid;
+  gap: 12px;
+  padding: 0 16px;
+}
+
+.bracket-tiebreakers .form-label {
+  margin-bottom: 4px;
+}
+
 /* ============================================================
    Responsive
    ============================================================ */

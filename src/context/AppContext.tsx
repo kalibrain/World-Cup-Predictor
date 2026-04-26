@@ -40,6 +40,8 @@ function buildInitialState(): AppState {
     selectedThirdPlace: [],
     thirdPlaceAssignment: {},
     matches: createInitialMatches(),
+    totalGoals: null,
+    topScorer: '',
   };
 }
 
@@ -62,6 +64,8 @@ interface AppContextValue {
   selectPrivateTournament: (tournamentName: string) => Promise<string | null>;
   clearTournamentSelection: () => void;
   setBracketName: (name: string) => void;
+  setTotalGoals: (value: number | null) => void;
+  setTopScorer: (value: string) => void;
   startBracket: (name: string) => Promise<string | null>;
   updateGroupRankings: (groupId: string, rankings: string[]) => void;
   markGroupComplete: (groupId: string) => void;
@@ -105,6 +109,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       selectedThirdPlace: snapshot.selectedThirdPlace,
       thirdPlaceAssignment: snapshot.thirdPlaceAssignment,
       matches: snapshot.matches,
+      totalGoals: snapshot.totalGoals,
+      topScorer: snapshot.topScorer,
     }),
     metaKey: JSON.stringify({
       bracketName: snapshot.bracketName,
@@ -257,6 +263,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const setBracketName = useCallback((name: string) => {
     setState(prev => ({ ...prev, bracketName: name }));
   }, []);
+
+  const setTotalGoals = useCallback((value: number | null) => {
+    if (isReadOnly) return;
+    setState(prev => ({ ...prev, totalGoals: value }));
+  }, [isReadOnly]);
+
+  const setTopScorer = useCallback((value: string) => {
+    if (isReadOnly) return;
+    setState(prev => ({ ...prev, topScorer: value }));
+  }, [isReadOnly]);
 
   const startBracket = useCallback(async (name: string): Promise<string | null> => {
     if (!user) return 'You need to sign in first.';
@@ -680,6 +696,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     selectPrivateTournament,
     clearTournamentSelection,
     setBracketName,
+    setTotalGoals,
+    setTopScorer,
     startBracket,
     updateGroupRankings,
     markGroupComplete,
@@ -706,6 +724,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     selectPrivateTournament,
     clearTournamentSelection,
     setBracketName,
+    setTotalGoals,
+    setTopScorer,
     startBracket,
     updateGroupRankings,
     markGroupComplete,

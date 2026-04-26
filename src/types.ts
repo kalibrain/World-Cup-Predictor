@@ -42,4 +42,6 @@ export interface AppState {
   selectedThirdPlace: string[]; // group ids of selected 3rd place teams (exactly 8)
   thirdPlaceAssignment: Record<string, string>; // matchId -> teamId
   matches: Record<string, Match>;
+  totalGoals: number | null;
+  topScorer: string;
 }
