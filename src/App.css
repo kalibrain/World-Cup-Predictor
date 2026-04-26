@@ -125,10 +125,129 @@ html, body {
   line-height: 1.2;
 }
 
-.header-right {
+.header-right,
+.header-actions {
   display: flex;
   align-items: center;
   gap: 12px;
+  justify-content: flex-end;
+}
+
+.header-hamburger {
+  display: none;
+  width: 40px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.header-hamburger:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--gold);
+}
+
+.header-hamburger-icon {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.header-subbanner {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 24px;
+  background: rgba(0, 0, 0, 0.3);
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+
+.header-subbanner-text {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-subbanner-pill {
+  background: var(--gold-dim);
+  border: 1px solid var(--gold);
+  color: var(--gold);
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.header-subbanner-pill-muted {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.18);
+  color: var(--text);
+}
+
+.header-menu {
+  position: absolute;
+  top: 100%;
+  right: 16px;
+  margin-top: 8px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-top: 2px solid var(--gold);
+  border-radius: 10px;
+  padding: 12px;
+  display: none;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 220px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  z-index: 200;
+}
+
+.header-menu .btn {
+  width: 100%;
+  justify-content: center;
+}
+
+.header-menu-email {
+  font-size: 12px;
+  color: var(--text-secondary);
+  padding: 4px 8px 8px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 768px) {
+  .header-actions-desktop {
+    display: none;
+  }
+
+  .header-hamburger {
+    display: inline-flex;
+  }
+
+  .header-subbanner {
+    display: flex;
+  }
+
+  .header-menu {
+    display: flex;
+  }
+
+  .header-inner {
+    padding: 10px 16px;
+  }
 }
 
 .user-badge {
@@ -1279,6 +1398,7 @@ html, body {
 /* Tournament chooser */
 .tournament-tab-row {
   display: flex;
+  justify-content: center;
   gap: 0.5rem;
   margin: 0.75rem 0 1rem;
 }
@@ -1312,7 +1432,134 @@ html, body {
   margin-top: 0.2rem;
 }
 
-.header-saving {
-  font-size: 0.78rem;
-  color: #f8d877;
+.save-status {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(13, 27, 46, 0.95);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  z-index: 1000;
+  animation: save-status-fade-in 180ms ease-out;
+}
+
+.save-status-saved {
+  border-color: rgba(106, 222, 138, 0.45);
+  color: #6ade8a;
+}
+
+.save-status-error {
+  border-color: rgba(220, 80, 80, 0.55);
+  color: #ffb0b0;
+}
+
+.save-status-spinner {
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-top-color: var(--gold);
+  border-radius: 50%;
+  animation: save-status-spin 0.8s linear infinite;
+}
+
+.save-status-check {
+  font-weight: 700;
+}
+
+@keyframes save-status-fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes save-status-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 480px) {
+  .save-status {
+    bottom: 16px;
+    right: 50%;
+    transform: translateX(50%);
+  }
+
+  @keyframes save-status-fade-in {
+    from { opacity: 0; transform: translateX(50%) translateY(8px); }
+    to { opacity: 1; transform: translateX(50%) translateY(0); }
+  }
+}
+
+/* Mobile bracket: stack rounds vertically in tournament order so the page
+   has only one scroll axis. Round columns are reordered via flex `order`
+   to flow R32 → R16 → QF → SF → Final/3PO regardless of their left/right
+   position in the desktop mirrored layout. */
+@media (max-width: 768px) {
+  .bracket-scroll-container {
+    overflow-x: visible;
+    padding: 0 12px 24px;
+    -webkit-overflow-scrolling: auto;
+  }
+
+  .bracket-mirror {
+    flex-direction: column;
+    min-width: 0;
+    height: auto;
+    gap: 0;
+  }
+
+  .bracket-mirror > :nth-child(1) { order: 1; }
+  .bracket-mirror > :nth-child(9) { order: 2; }
+  .bracket-mirror > :nth-child(2) { order: 3; }
+  .bracket-mirror > :nth-child(8) { order: 4; }
+  .bracket-mirror > :nth-child(3) { order: 5; }
+  .bracket-mirror > :nth-child(7) { order: 6; }
+  .bracket-mirror > :nth-child(4) { order: 7; }
+  .bracket-mirror > :nth-child(6) { order: 8; }
+  .bracket-mirror > :nth-child(5) { order: 9; }
+
+  /* Right-half columns repeat their round name; suppress the duplicate
+     so each round shows a single heading. */
+  .bracket-mirror > :nth-child(6) .round-title,
+  .bracket-mirror > :nth-child(7) .round-title,
+  .bracket-mirror > :nth-child(8) .round-title,
+  .bracket-mirror > :nth-child(9) .round-title {
+    display: none;
+  }
+
+  /* Spacing between distinct rounds; paired left/right halves flow together. */
+  .bracket-mirror > :nth-child(2),
+  .bracket-mirror > :nth-child(3),
+  .bracket-mirror > :nth-child(4),
+  .bracket-mirror > :nth-child(5) {
+    margin-top: 24px;
+  }
+
+  .bracket-round-col,
+  .bracket-center-col {
+    flex: 0 0 auto;
+    min-width: 0;
+    max-width: none;
+    width: 100%;
+  }
+
+  .round-matches {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+    padding: 0;
+  }
+
+  .final-col-matches {
+    grid-template-columns: 1fr;
+    max-width: 280px;
+    margin: 0 auto;
+    gap: 16px;
+  }
 }

@@ -7,6 +7,7 @@ import { GroupStage } from './components/Groups/GroupStage';
 import { ThirdPlaceSelector } from './components/ThirdPlace/ThirdPlaceSelector';
 import { BracketView } from './components/Bracket/BracketView';
 import { SharePanel } from './components/Share/SharePanel';
+import { SaveStatus } from './components/SaveStatus';
 import './App.css';
 
 function AppContent() {
@@ -50,6 +51,7 @@ function AppContent() {
       <main className="app-main">
         {renderStep()}
       </main>
+      <SaveStatus />
     </div>
   );
 }
