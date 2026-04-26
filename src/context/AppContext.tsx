@@ -60,7 +60,7 @@ interface AppContextValue {
   persistError: string | null;
   tournamentError: string | null;
   refreshTournaments: () => Promise<void>;
-  selectPublicTournament: (tournamentId: string) => Promise<string | null>;
+  selectTournament: (tournamentId: string) => Promise<string | null>;
   selectPrivateTournament: (tournamentName: string) => Promise<string | null>;
   clearTournamentSelection: () => void;
   setBracketName: (name: string) => void;
@@ -175,13 +175,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return null;
   }, [user]);
 
-  const selectPublicTournament = useCallback(async (tournamentId: string): Promise<string | null> => {
+  const selectTournament = useCallback(async (tournamentId: string): Promise<string | null> => {
     if (!user) return 'You need to sign in first.';
 
     const current = tournaments.find(t => t.tournament_id === tournamentId);
     if (!current) return 'Tournament not found.';
 
     if (!current.is_member) {
+      if (current.visibility === 'private') {
+        const message = 'Join this private tournament by name first.';
+        setTournamentError(message);
+        return message;
+      }
       const joinError = await joinPublicTournament(tournamentId);
       if (joinError) {
         setTournamentError(joinError);
@@ -692,7 +697,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     persistError,
     tournamentError,
     refreshTournaments,
-    selectPublicTournament,
+    selectTournament,
     selectPrivateTournament,
     clearTournamentSelection,
     setBracketName,
@@ -720,7 +725,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     persistError,
     tournamentError,
     refreshTournaments,
-    selectPublicTournament,
+    selectTournament,
     selectPrivateTournament,
     clearTournamentSelection,
     setBracketName,

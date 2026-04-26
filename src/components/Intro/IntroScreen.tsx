@@ -11,7 +11,7 @@ export function IntroScreen() {
     persistError,
     isLocked,
     isSaving,
-    selectPublicTournament,
+    selectTournament,
     selectPrivateTournament,
     clearTournamentSelection,
     startBracket,
@@ -33,6 +33,11 @@ export function IntroScreen() {
     [tournaments],
   );
 
+  const joinedPrivateTournaments = useMemo(
+    () => tournaments.filter(t => t.visibility === 'private' && t.is_member),
+    [tournaments],
+  );
+
   const handleGoogleSignIn = async () => {
     setAuthError(null);
     const error = await signInWithGoogle();
@@ -41,10 +46,10 @@ export function IntroScreen() {
     }
   };
 
-  const handleSelectPublicTournament = async (tournamentId: string) => {
+  const handleSelectTournament = async (tournamentId: string) => {
     setFlowError(null);
     setActionTournamentId(tournamentId);
-    const error = await selectPublicTournament(tournamentId);
+    const error = await selectTournament(tournamentId);
     setActionTournamentId(null);
     if (error) {
       setFlowError(error);
@@ -151,7 +156,7 @@ export function IntroScreen() {
                     </div>
                     <button
                       className="btn btn-outline btn-sm"
-                      onClick={() => void handleSelectPublicTournament(tournament.tournament_id)}
+                      onClick={() => void handleSelectTournament(tournament.tournament_id)}
                       disabled={actionTournamentId === tournament.tournament_id}
                     >
                       {actionTournamentId === tournament.tournament_id ? 'Opening...' : 'Select'}
@@ -163,8 +168,36 @@ export function IntroScreen() {
 
             {activeTab === 'private' && (
               <>
-                <label className="form-label" htmlFor="private-tournament-name">
-                  Enter Exact Private Tournament Name
+                {joinedPrivateTournaments.length > 0 && (
+                  <>
+                    <div className="form-label">Private tournaments you're already part of</div>
+                    <div className="tournament-list">
+                      {joinedPrivateTournaments.map(tournament => (
+                        <div key={tournament.tournament_id} className="tournament-card">
+                          <div>
+                            <div className="tournament-name">{tournament.tournament_name}</div>
+                            <div className="tournament-meta">
+                              Joined{tournament.is_locked ? ' • Locked' : ' • Open'}
+                            </div>
+                          </div>
+                          <button
+                            className="btn btn-outline btn-sm"
+                            onClick={() => void handleSelectTournament(tournament.tournament_id)}
+                            disabled={actionTournamentId === tournament.tournament_id}
+                          >
+                            {actionTournamentId === tournament.tournament_id ? 'Opening...' : 'Select'}
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+                <label
+                  className="form-label"
+                  htmlFor="private-tournament-name"
+                  style={joinedPrivateTournaments.length > 0 ? { marginTop: 24 } : undefined}
+                >
+                  {joinedPrivateTournaments.length > 0 ? 'Or Join Another Private Tournament' : 'Enter Exact Private Tournament Name'}
                 </label>
                 <input
                   id="private-tournament-name"
@@ -224,7 +257,11 @@ export function IntroScreen() {
               </>
             )}
 
-            <button className="btn btn-outline btn-sm" onClick={clearTournamentSelection}>
+            <button
+              className="btn btn-outline btn-sm"
+              onClick={clearTournamentSelection}
+              style={{ marginTop: 24 }}
+            >
               Choose Different Tournament
             </button>
           </>
