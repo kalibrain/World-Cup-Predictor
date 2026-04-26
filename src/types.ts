@@ -13,7 +13,7 @@ export interface Group {
   completed: boolean;
 }
 
-export type AppStep = 'intro' | 'groups' | 'third-place' | 'bracket' | 'share';
+export type AppStep = 'intro' | 'groups' | 'third-place' | 'bracket';
 
 export interface MatchSlot {
   teamId: string | null; // null means TBD

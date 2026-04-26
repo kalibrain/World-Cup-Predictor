@@ -4,7 +4,7 @@ import { useApp } from '../context/AppContext';
 type Status = 'idle' | 'saving' | 'saved';
 
 export function SaveStatus() {
-  const { isSaving, persistError, isViewOnly } = useApp();
+  const { isSaving, persistError } = useApp();
   const [status, setStatus] = useState<Status>('idle');
 
   useEffect(() => {
@@ -17,8 +17,6 @@ export function SaveStatus() {
     const timer = window.setTimeout(() => setStatus('idle'), 1200);
     return () => window.clearTimeout(timer);
   }, [isSaving, status]);
-
-  if (isViewOnly) return null;
 
   if (persistError) {
     return (

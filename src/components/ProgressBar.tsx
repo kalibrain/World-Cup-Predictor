@@ -5,7 +5,6 @@ const STEPS: { id: AppStep; label: string }[] = [
   { id: 'groups', label: 'Group Stage' },
   { id: 'third-place', label: '3rd Place' },
   { id: 'bracket', label: 'Knockout' },
-  { id: 'share', label: 'Share' },
 ];
 
 interface Props {

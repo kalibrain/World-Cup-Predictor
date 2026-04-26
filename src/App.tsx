@@ -6,22 +6,13 @@ import { IntroScreen } from './components/Intro/IntroScreen';
 import { GroupStage } from './components/Groups/GroupStage';
 import { ThirdPlaceSelector } from './components/ThirdPlace/ThirdPlaceSelector';
 import { BracketView } from './components/Bracket/BracketView';
-import { SharePanel } from './components/Share/SharePanel';
 import { SaveStatus } from './components/SaveStatus';
 import './App.css';
 
 function AppContent() {
-  const { state, isViewOnly, goToStep } = useApp();
+  const { state, goToStep } = useApp();
 
   const renderStep = () => {
-    if (isViewOnly) {
-      // View-only: show bracket if they have picks, otherwise share
-      if (state.step === 'bracket' || state.step === 'groups' || state.step === 'third-place') {
-        return <BracketView />;
-      }
-      return <SharePanel />;
-    }
-
     switch (state.step) {
       case 'intro':
         return <IntroScreen />;
@@ -31,8 +22,6 @@ function AppContent() {
         return <ThirdPlaceSelector />;
       case 'bracket':
         return <BracketView />;
-      case 'share':
-        return <SharePanel />;
       default:
         return <IntroScreen />;
     }
@@ -43,9 +32,9 @@ function AppContent() {
       <Header />
       {state.step !== 'intro' && (
         <ProgressBar
-          currentStep={isViewOnly ? 'share' : state.step}
-          furthestStep={isViewOnly ? 'share' : state.furthestStep}
-          onStepClick={isViewOnly ? undefined : goToStep}
+          currentStep={state.step}
+          furthestStep={state.furthestStep}
+          onStepClick={goToStep}
         />
       )}
       <main className="app-main">

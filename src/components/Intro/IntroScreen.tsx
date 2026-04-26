@@ -250,10 +250,6 @@ export function IntroScreen() {
           <div className="intro-step-num">3</div>
           <div className="intro-step-text">Pick knockout winners</div>
         </div>
-        <div className="intro-step">
-          <div className="intro-step-num">4</div>
-          <div className="intro-step-text">Share your bracket</div>
-        </div>
       </div>
     </div>
   );

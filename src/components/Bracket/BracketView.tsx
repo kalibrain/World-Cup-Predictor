@@ -26,14 +26,12 @@ function RoundColumn({ title, matchIds, showDate }: RoundColumnProps) {
 }
 
 export function BracketView() {
-  const { state, isReadOnly, goToShare, goToStep } = useApp();
+  const { state, isReadOnly, goToStep } = useApp();
 
   const finalMatch = state.matches['FINAL'];
   const tpoMatch = state.matches['3PO'];
   const champion = finalMatch?.winnerId;
   const championTeam = champion ? TEAM_MAP[champion] : null;
-
-  const bracketComplete = !!champion && !!tpoMatch?.winnerId;
 
   return (
     <div className="bracket-screen">
@@ -83,15 +81,6 @@ export function BracketView() {
           <button className="btn btn-outline" onClick={() => goToStep('third-place')}>
             ← Back to 3rd Place
           </button>
-          {bracketComplete ? (
-            <button className="btn btn-gold btn-lg" onClick={goToShare}>
-              🏆 View &amp; Share Your Bracket →
-            </button>
-          ) : (
-            <button className="btn btn-outline" onClick={goToShare}>
-              Share Partial Bracket
-            </button>
-          )}
         </div>
       )}
     </div>

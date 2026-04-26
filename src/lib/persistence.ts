@@ -47,7 +47,7 @@ export interface LoadedBracket {
 }
 
 function normalizeStep(step: string | null | undefined): AppStep {
-  const valid: AppStep[] = ['intro', 'groups', 'third-place', 'bracket', 'share'];
+  const valid: AppStep[] = ['intro', 'groups', 'third-place', 'bracket'];
   return valid.includes(step as AppStep) ? (step as AppStep) : 'groups';
 }
 

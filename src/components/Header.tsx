@@ -5,11 +5,8 @@ import { useAuth } from '../context/AuthContext';
 export function Header() {
   const {
     state,
-    isViewOnly,
     isLocked,
-    isReadOnly,
     selectedTournament,
-    goToShare,
     resetApp,
     clearTournamentSelection,
   } = useApp();
@@ -37,10 +34,6 @@ export function Header() {
 
   const closeMenu = () => setMenuOpen(false);
 
-  const handleShare = () => {
-    closeMenu();
-    goToShare();
-  };
   const handleSignOut = () => {
     closeMenu();
     void signOut();
@@ -49,15 +42,9 @@ export function Header() {
     closeMenu();
     clearTournamentSelection();
   };
-  const handleCreateOwn = () => {
-    closeMenu();
-    resetApp();
-  };
 
-  const canShare = state.step !== 'intro';
-  const showShare = !isReadOnly && canShare && state.step !== 'share';
-  const showSwitch = !isViewOnly && Boolean(selectedTournament) && state.step !== 'intro';
-  const showSignOut = !isViewOnly && !isLoading && Boolean(user);
+  const showSwitch = Boolean(selectedTournament) && state.step !== 'intro';
+  const showSignOut = !isLoading && Boolean(user);
   const signedInLabel = user?.email ?? user?.user_metadata?.full_name ?? 'Signed in';
 
   const hasContext = Boolean(selectedTournament) || Boolean(state.bracketName);
@@ -67,8 +54,8 @@ export function Header() {
       <div className="header-inner">
         <div
           className="header-logo"
-          onClick={!isViewOnly ? resetApp : undefined}
-          style={{ cursor: isViewOnly ? 'default' : 'pointer' }}
+          onClick={resetApp}
+          style={{ cursor: 'pointer' }}
         >
           <div className="header-badge">
             <span className="header-trophy">⚽</span>
@@ -89,11 +76,6 @@ export function Header() {
           {state.bracketName && (
             <div className="bracket-name-badge">{state.bracketName}</div>
           )}
-          {showShare && (
-            <button className="btn btn-gold btn-sm" onClick={handleShare}>
-              Share Bracket
-            </button>
-          )}
           {showSwitch && (
             <button className="btn btn-outline btn-sm" onClick={handleSwitchTournament}>
               Switch Tournament
@@ -103,11 +85,6 @@ export function Header() {
           {showSignOut && (
             <button className="btn btn-outline btn-sm" onClick={() => void signOut()}>
               Sign Out
-            </button>
-          )}
-          {isViewOnly && (
-            <button className="btn btn-outline btn-sm" onClick={resetApp}>
-              Create My Own
             </button>
           )}
         </div>
@@ -151,11 +128,6 @@ export function Header() {
               {signedInLabel}
             </div>
           )}
-          {showShare && (
-            <button className="btn btn-gold" onClick={handleShare} role="menuitem">
-              Share Bracket
-            </button>
-          )}
           {showSwitch && (
             <button className="btn btn-outline" onClick={handleSwitchTournament} role="menuitem">
               Switch Tournament
@@ -164,11 +136,6 @@ export function Header() {
           {showSignOut && (
             <button className="btn btn-outline" onClick={handleSignOut} role="menuitem">
               Sign Out
-            </button>
-          )}
-          {isViewOnly && (
-            <button className="btn btn-outline" onClick={handleCreateOwn} role="menuitem">
-              Create My Own
             </button>
           )}
         </div>

@@ -13,7 +13,6 @@ import type { AppState, AppStep } from '../types';
 import { createInitialGroups } from '../data/teams';
 import { createInitialMatches, BRACKET_FEED } from '../data/bracket';
 import { assignThirdPlaceTeams } from '../utils/thirdPlaceAssignment';
-import { getSharedStateFromUrl } from '../utils/urlEncoding';
 import { useAuth } from './AuthContext';
 import {
   fetchBracketForTournament,
@@ -26,7 +25,7 @@ import {
   upsertProfile,
 } from '../lib/persistence';
 
-const STEP_ORDER: AppStep[] = ['intro', 'groups', 'third-place', 'bracket', 'share'];
+const STEP_ORDER: AppStep[] = ['intro', 'groups', 'third-place', 'bracket'];
 
 function stepIndex(step: AppStep): number {
   return STEP_ORDER.indexOf(step);
@@ -50,7 +49,6 @@ function normalizeName(value: string): string {
 
 interface AppContextValue {
   state: AppState;
-  isViewOnly: boolean;
   isLocked: boolean;
   isReadOnly: boolean;
   selectedTournament: TournamentContext | null;
@@ -73,7 +71,6 @@ interface AppContextValue {
   goBackToGroups: () => void;
   goToStep: (step: AppStep) => void;
   pickMatchWinner: (matchId: string, winnerId: string) => void;
-  goToShare: () => void;
   resetApp: () => void;
   recomputeBracket: () => void;
 }
@@ -82,10 +79,8 @@ const AppContext = createContext<AppContextValue | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
-  const sharedState = getSharedStateFromUrl();
-  const isViewOnly = sharedState !== null;
 
-  const [state, setState] = useState<AppState>(() => sharedState ?? buildInitialState());
+  const [state, setState] = useState<AppState>(() => buildInitialState());
   const [selectedTournament, setSelectedTournament] = useState<TournamentContext | null>(null);
   const [tournaments, setTournaments] = useState<TournamentContext[]>([]);
   const [isLoadingTournaments, setIsLoadingTournaments] = useState(false);
@@ -118,11 +113,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }),
   });
 
-  const isLocked = !isViewOnly && Boolean(selectedTournament?.is_locked);
-  const isReadOnly = isViewOnly || isLocked;
+  const isLocked = Boolean(selectedTournament?.is_locked);
+  const isReadOnly = isLocked;
 
   const refreshTournaments = useCallback(async () => {
-    if (!user || isViewOnly) return;
+    if (!user) return;
 
     setIsLoadingTournaments(true);
     const { data, error } = await getUserTournamentContexts();
@@ -141,7 +136,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setSelectedTournament(prev =>
       prev ? data.find(item => item.tournament_id === prev.tournament_id) ?? null : null,
     );
-  }, [isViewOnly, user]);
+  }, [user]);
 
   const loadTournamentBracket = useCallback(async (tournament: TournamentContext): Promise<string | null> => {
     if (!user) return 'You need to sign in first.';
@@ -245,19 +240,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [loadTournamentBracket, user]);
 
   useEffect(() => {
-    const handleHashChange = () => {
-      const shared = getSharedStateFromUrl();
-      if (shared) {
-        setState(shared);
-      }
-    };
-    window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
-  }, []);
-
-  useEffect(() => {
-    if (isViewOnly) return;
-
     if (!user) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelectedTournament(null);
@@ -270,7 +252,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     void upsertProfile(user);
     void refreshTournaments();
-  }, [isViewOnly, refreshTournaments, user]);
+  }, [refreshTournaments, user]);
 
   const setBracketName = useCallback((name: string) => {
     setState(prev => ({ ...prev, bracketName: name }));
@@ -604,16 +586,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
   }, [isReadOnly]);
 
-  const goToShare = useCallback(() => {
-    setState(prev => ({
-      ...prev,
-      step: 'share',
-      furthestStep: stepIndex('share') > stepIndex(prev.furthestStep) ? 'share' : prev.furthestStep,
-    }));
-  }, []);
-
   const resetApp = useCallback(() => {
-    window.location.hash = '';
     setPersistError(null);
     setTournamentError(null);
     setBracketId(null);
@@ -632,7 +605,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (isViewOnly || !user || !selectedTournament || !bracketId) {
+    if (!user || !selectedTournament || !bracketId) {
       return;
     }
 
@@ -687,7 +660,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     };
   }, [
     bracketId,
-    isViewOnly,
     selectedTournament,
     state,
     user,
@@ -695,7 +667,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<AppContextValue>(() => ({
     state,
-    isViewOnly,
     isLocked,
     isReadOnly,
     selectedTournament,
@@ -718,12 +689,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     goBackToGroups,
     goToStep,
     pickMatchWinner,
-    goToShare,
     resetApp,
     recomputeBracket,
   }), [
     state,
-    isViewOnly,
     isLocked,
     isReadOnly,
     selectedTournament,
@@ -746,7 +715,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     goBackToGroups,
     goToStep,
     pickMatchWinner,
-    goToShare,
     resetApp,
     recomputeBracket,
   ]);
