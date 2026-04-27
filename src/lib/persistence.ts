@@ -283,3 +283,197 @@ export async function saveBracketSnapshot(params: {
 
   return null;
 }
+
+export type TournamentVisibilityWritable = TournamentVisibility;
+export type TournamentStatus = 'draft' | 'open' | 'locked' | 'archived';
+
+export interface TournamentOverviewRow {
+  tournament_id: string;
+  tournament_name: string;
+  visibility: TournamentVisibility;
+  status: TournamentStatus;
+  starts_at: string | null;
+  locks_at: string;
+  is_locked: boolean;
+  member_count: number;
+  bracket_count: number;
+  results_groups_entered: number;
+  results_matches_entered: number;
+  tiebreakers_entered: boolean;
+  created_at: string;
+}
+
+export interface TournamentMemberRow {
+  user_id: string;
+  email: string | null;
+  display_name: string | null;
+  role: 'admin' | 'participant';
+  joined_at: string;
+  bracket_id: string | null;
+  bracket_name: string | null;
+  bracket_updated_at: string | null;
+  bracket_furthest_step: AppStep | null;
+}
+
+export interface TournamentResults {
+  group_results: Record<string, string[]>;
+  match_results: Record<string, string | null>;
+  tiebreakers: { total_goals: number | null; top_scorer: string; updated_at: string; updated_by: string | null } | null;
+}
+
+export interface TournamentRow {
+  id: string;
+  name: string;
+  visibility: TournamentVisibility;
+  status: TournamentStatus;
+  starts_at: string | null;
+  locks_at: string;
+}
+
+export interface AdminBracketRow {
+  bracket_id: string;
+  tournament_id: string;
+  user_id: string;
+  bracket_name: string;
+  current_step: AppStep;
+  furthest_step: AppStep;
+  rankings: Record<string, string[]>;
+  knockout: {
+    selected_third_place?: string[];
+    third_place_assignment?: Record<string, string>;
+    matches?: Record<string, Match>;
+    total_goals?: number | null;
+    top_scorer?: string;
+  };
+}
+
+export async function adminListTournamentsOverview(): Promise<{ data: TournamentOverviewRow[]; error: string | null }> {
+  const { data, error } = await supabase.rpc('admin_list_tournaments_overview');
+  return {
+    data: (data ?? []) as TournamentOverviewRow[],
+    error: error?.message ?? null,
+  };
+}
+
+export async function adminListTournamentMembers(tournamentId: string): Promise<{ data: TournamentMemberRow[]; error: string | null }> {
+  const { data, error } = await supabase.rpc('admin_list_tournament_members', {
+    p_tournament_id: tournamentId,
+  });
+  return {
+    data: (data ?? []) as TournamentMemberRow[],
+    error: error?.message ?? null,
+  };
+}
+
+export async function adminRevokeMembership(tournamentId: string, userId: string): Promise<string | null> {
+  const { error } = await supabase.rpc('admin_revoke_membership', {
+    p_tournament_id: tournamentId,
+    p_user_id: userId,
+  });
+  return error?.message ?? null;
+}
+
+export async function adminDeleteBracket(bracketId: string): Promise<string | null> {
+  const { error } = await supabase.rpc('admin_delete_bracket', {
+    p_bracket_id: bracketId,
+  });
+  return error?.message ?? null;
+}
+
+export async function adminUpsertGroupResult(
+  tournamentId: string,
+  groupId: string,
+  rankings: string[],
+): Promise<string | null> {
+  const { error } = await supabase.rpc('admin_upsert_group_result', {
+    p_tournament_id: tournamentId,
+    p_group_id: groupId,
+    p_rankings: rankings,
+  });
+  return error?.message ?? null;
+}
+
+export async function adminUpsertMatchResult(
+  tournamentId: string,
+  matchId: string,
+  winnerId: string | null,
+): Promise<string | null> {
+  const { error } = await supabase.rpc('admin_upsert_match_result', {
+    p_tournament_id: tournamentId,
+    p_match_id: matchId,
+    p_winner_id: winnerId,
+  });
+  return error?.message ?? null;
+}
+
+export async function adminUpsertTiebreakers(
+  tournamentId: string,
+  totalGoals: number | null,
+  topScorer: string,
+): Promise<string | null> {
+  const { error } = await supabase.rpc('admin_upsert_tiebreakers', {
+    p_tournament_id: tournamentId,
+    p_total_goals: totalGoals,
+    p_top_scorer: topScorer,
+  });
+  return error?.message ?? null;
+}
+
+export async function adminGetTournamentResults(tournamentId: string): Promise<{ data: TournamentResults | null; error: string | null }> {
+  const { data, error } = await supabase
+    .rpc('admin_get_tournament_results', { p_tournament_id: tournamentId })
+    .maybeSingle();
+
+  if (error) return { data: null, error: error.message };
+  if (!data) return { data: { group_results: {}, match_results: {}, tiebreakers: null }, error: null };
+
+  const row = data as { group_results: Record<string, string[]>; match_results: Record<string, string | null>; tiebreakers: TournamentResults['tiebreakers'] };
+  return {
+    data: {
+      group_results: row.group_results ?? {},
+      match_results: row.match_results ?? {},
+      tiebreakers: row.tiebreakers ?? null,
+    },
+    error: null,
+  };
+}
+
+export async function adminUpsertTournament(params: {
+  id: string | null;
+  name: string;
+  visibility: TournamentVisibility;
+  status: TournamentStatus;
+  starts_at: string | null;
+  locks_at: string;
+}): Promise<{ data: TournamentRow | null; error: string | null }> {
+  const { data, error } = await supabase.rpc('admin_upsert_tournament', {
+    p_id: params.id,
+    p_name: params.name,
+    p_visibility: params.visibility,
+    p_status: params.status,
+    p_starts_at: params.starts_at,
+    p_locks_at: params.locks_at,
+  });
+  return {
+    data: (data as TournamentRow | null) ?? null,
+    error: error?.message ?? null,
+  };
+}
+
+export async function adminArchiveTournament(tournamentId: string): Promise<string | null> {
+  const { error } = await supabase.rpc('admin_archive_tournament', {
+    p_tournament_id: tournamentId,
+  });
+  return error?.message ?? null;
+}
+
+export async function adminGetBracket(bracketId: string): Promise<{ data: AdminBracketRow | null; error: string | null }> {
+  const { data, error } = await supabase
+    .rpc('admin_get_bracket', { p_bracket_id: bracketId })
+    .maybeSingle();
+
+  if (error) return { data: null, error: error.message };
+  if (!data) return { data: null, error: null };
+
+  return { data: data as AdminBracketRow, error: null };
+}

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 
@@ -10,7 +11,9 @@ export function Header() {
     resetApp,
     clearTournamentSelection,
   } = useApp();
-  const { user, isLoading, signOut } = useAuth();
+  const { user, isLoading, isGlobalAdmin, signOut } = useAuth();
+  const location = useLocation();
+  const onAdminRoute = location.pathname.startsWith('/admin');
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLElement | null>(null);
 
@@ -81,6 +84,14 @@ export function Header() {
               Switch Tournament
             </button>
           )}
+          {isGlobalAdmin && (
+            <Link
+              to={onAdminRoute ? '/' : '/admin'}
+              className="btn btn-outline btn-sm"
+            >
+              {onAdminRoute ? 'Predictor' : 'Admin'}
+            </Link>
+          )}
           {showSignOut && <div className="user-badge">{signedInLabel}</div>}
           {showSignOut && (
             <button className="btn btn-outline btn-sm" onClick={() => void signOut()}>
@@ -132,6 +143,16 @@ export function Header() {
             <button className="btn btn-outline" onClick={handleSwitchTournament} role="menuitem">
               Switch Tournament
             </button>
+          )}
+          {isGlobalAdmin && (
+            <Link
+              to={onAdminRoute ? '/' : '/admin'}
+              className="btn btn-outline"
+              role="menuitem"
+              onClick={closeMenu}
+            >
+              {onAdminRoute ? 'Predictor' : 'Admin'}
+            </Link>
           )}
           {showSignOut && (
             <button className="btn btn-outline" onClick={handleSignOut} role="menuitem">

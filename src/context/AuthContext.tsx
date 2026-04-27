@@ -15,6 +15,8 @@ interface AuthContextValue {
   user: User | null;
   session: Session | null;
   isLoading: boolean;
+  isGlobalAdmin: boolean;
+  isAdminCheckPending: boolean;
   signInWithGoogle: () => Promise<string | null>;
   signOut: () => Promise<string | null>;
 }
@@ -24,6 +26,11 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isGlobalAdmin, setIsGlobalAdmin] = useState(false);
+  const [adminCheckedForUserId, setAdminCheckedForUserId] = useState<string | null>(null);
+
+  const userId = session?.user?.id ?? null;
+  const isAdminCheckPending = Boolean(userId) && adminCheckedForUserId !== userId;
 
   useEffect(() => {
     let isMounted = true;
@@ -52,6 +59,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  useEffect(() => {
+    if (!userId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setIsGlobalAdmin(false);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setAdminCheckedForUserId(null);
+      return;
+    }
+
+    let cancelled = false;
+    supabase.rpc('current_user_is_global_admin').then(({ data, error }) => {
+      if (cancelled) return;
+      if (error) {
+        console.error('Unable to check admin status.', error);
+        setIsGlobalAdmin(false);
+      } else {
+        setIsGlobalAdmin(Boolean(data));
+      }
+      setAdminCheckedForUserId(userId);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
+
   const signInWithGoogle = useCallback(async () => {
     const redirectTo = `${window.location.origin}${window.location.pathname}`;
     const { error } = await supabase.auth.signInWithOAuth({
@@ -72,10 +105,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user: session?.user ?? null,
       session,
       isLoading,
+      isGlobalAdmin,
+      isAdminCheckPending,
       signInWithGoogle,
       signOut,
     }),
-    [isLoading, session, signInWithGoogle, signOut],
+    [isLoading, session, isGlobalAdmin, isAdminCheckPending, signInWithGoogle, signOut],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

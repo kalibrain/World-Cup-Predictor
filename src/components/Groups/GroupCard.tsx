@@ -17,7 +17,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import type { Group } from '../../types';
 import { TEAM_MAP } from '../../data/teams';
-import { useApp } from '../../context/AppContext';
+import { useAppOrNull } from '../../context/AppContext';
 import { FlagIcon } from '../FlagIcon';
 
 interface SortableTeamProps {
@@ -63,10 +63,15 @@ function SortableTeam({ id, rank, isReadOnly }: SortableTeamProps) {
 
 interface GroupCardProps {
   group: Group;
+  onRankingsChange?: (groupId: string, rankings: string[]) => void;
+  readOnly?: boolean;
+  rankLabel?: string;
 }
 
-export function GroupCard({ group }: GroupCardProps) {
-  const { updateGroupRankings, isReadOnly } = useApp();
+export function GroupCard({ group, onRankingsChange, readOnly, rankLabel }: GroupCardProps) {
+  const app = useAppOrNull();
+  const updateRankings = onRankingsChange ?? app?.updateGroupRankings;
+  const isReadOnly = readOnly ?? app?.isReadOnly ?? false;
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -79,11 +84,11 @@ export function GroupCard({ group }: GroupCardProps) {
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-    if (over && active.id !== over.id) {
+    if (over && active.id !== over.id && updateRankings) {
       const oldIndex = group.rankings.indexOf(active.id as string);
       const newIndex = group.rankings.indexOf(over.id as string);
       const newRankings = arrayMove(group.rankings, oldIndex, newIndex);
-      updateGroupRankings(group.id, newRankings);
+      updateRankings(group.id, newRankings);
     }
   };
 
@@ -93,7 +98,7 @@ export function GroupCard({ group }: GroupCardProps) {
         <div className="group-letter">Group {group.id}</div>
       </div>
       <div className="group-rank-labels">
-        <span className="rank-label-text">Drag to rank</span>
+        <span className="rank-label-text">{rankLabel ?? 'Drag to rank'}</span>
       </div>
       <DndContext
         sensors={sensors}

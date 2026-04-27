@@ -1,23 +1,31 @@
-import { useApp } from '../../context/AppContext';
+import { useAppOrNull } from '../../context/AppContext';
 import { BracketMatch } from './BracketMatch';
 import { TEAM_MAP } from '../../data/teams';
 import { FlagIcon } from '../FlagIcon';
+import type { Match } from '../../types';
 
 interface RoundColumnProps {
   title: string;
   matchIds: string[];
+  matches: Record<string, Match>;
   showDate?: boolean;
+  onPickWinner?: (matchId: string, winnerId: string) => void;
+  readOnly?: boolean;
 }
 
-function RoundColumn({ title, matchIds, showDate }: RoundColumnProps) {
-  const { state } = useApp();
+function RoundColumn({ title, matchIds, matches, showDate, onPickWinner, readOnly }: RoundColumnProps) {
   return (
     <div className="bracket-round-col">
       <div className="round-title">{title}</div>
       <div className="round-matches">
         {matchIds.map(id => (
           <div key={id} className="match-wrapper">
-            <BracketMatch match={state.matches[id]} showDate={showDate} />
+            <BracketMatch
+              match={matches[id]}
+              showDate={showDate}
+              onPickWinner={onPickWinner}
+              readOnly={readOnly}
+            />
           </div>
         ))}
       </div>
@@ -25,11 +33,32 @@ function RoundColumn({ title, matchIds, showDate }: RoundColumnProps) {
   );
 }
 
-export function BracketView() {
-  const { state, isReadOnly, goToStep, setTotalGoals, setTopScorer } = useApp();
+interface BracketViewProps {
+  matches?: Record<string, Match>;
+  totalGoals?: number | null;
+  topScorer?: string;
+  readOnly?: boolean;
+  onPickWinner?: (matchId: string, winnerId: string) => void;
+  onTotalGoalsChange?: (value: number | null) => void;
+  onTopScorerChange?: (value: string) => void;
+  showFooter?: boolean;
+  onBack?: () => void;
+}
 
-  const finalMatch = state.matches['FINAL'];
-  const tpoMatch = state.matches['3PO'];
+export function BracketView(props: BracketViewProps = {}) {
+  const app = useAppOrNull();
+  const matches = props.matches ?? app?.state.matches ?? {};
+  const totalGoals = props.totalGoals ?? app?.state.totalGoals ?? null;
+  const topScorer = props.topScorer ?? app?.state.topScorer ?? '';
+  const readOnly = props.readOnly ?? app?.isReadOnly ?? true;
+  const onPickWinner = props.onPickWinner ?? app?.pickMatchWinner ?? (() => {});
+  const onTotalGoals = props.onTotalGoalsChange ?? app?.setTotalGoals ?? (() => {});
+  const onTopScorer = props.onTopScorerChange ?? app?.setTopScorer ?? (() => {});
+  const showFooter = props.showFooter ?? !readOnly;
+  const onBack = props.onBack ?? (() => app?.goToStep('third-place'));
+
+  const finalMatch = matches['FINAL'];
+  const tpoMatch = matches['3PO'];
   const champion = finalMatch?.winnerId;
   const championTeam = champion ? TEAM_MAP[champion] : null;
 
@@ -49,30 +78,27 @@ export function BracketView() {
 
       <div className="bracket-scroll-container">
         <div className="bracket-mirror">
-          {/* Left half: flows right → center */}
-          <RoundColumn title="Round of 32" matchIds={['M1','M2','M3','M4','M5','M6','M7','M8']} showDate />
-          <RoundColumn title="Round of 16" matchIds={['R16_1','R16_2','R16_3','R16_4']} />
-          <RoundColumn title="Quarterfinals" matchIds={['QF1','QF2']} />
-          <RoundColumn title="Semifinal" matchIds={['SF1']} />
+          <RoundColumn title="Round of 32" matchIds={['M1','M2','M3','M4','M5','M6','M7','M8']} matches={matches} showDate onPickWinner={onPickWinner} readOnly={readOnly} />
+          <RoundColumn title="Round of 16" matchIds={['R16_1','R16_2','R16_3','R16_4']} matches={matches} onPickWinner={onPickWinner} readOnly={readOnly} />
+          <RoundColumn title="Quarterfinals" matchIds={['QF1','QF2']} matches={matches} onPickWinner={onPickWinner} readOnly={readOnly} />
+          <RoundColumn title="Semifinal" matchIds={['SF1']} matches={matches} onPickWinner={onPickWinner} readOnly={readOnly} />
 
-          {/* Center: Final + 3PO */}
           <div className="bracket-round-col bracket-center-col">
             <div className="round-title">Final &amp; 3rd Place</div>
             <div className="round-matches final-col-matches">
               <div className="match-wrapper">
-                <BracketMatch match={finalMatch} isFinal />
+                <BracketMatch match={finalMatch} isFinal onPickWinner={onPickWinner} readOnly={readOnly} />
               </div>
               <div className="match-wrapper">
-                <BracketMatch match={tpoMatch} is3PO />
+                <BracketMatch match={tpoMatch} is3PO onPickWinner={onPickWinner} readOnly={readOnly} />
               </div>
             </div>
           </div>
 
-          {/* Right half: mirrors left, flows ← center */}
-          <RoundColumn title="Semifinal" matchIds={['SF2']} />
-          <RoundColumn title="Quarterfinals" matchIds={['QF3','QF4']} />
-          <RoundColumn title="Round of 16" matchIds={['R16_5','R16_6','R16_7','R16_8']} />
-          <RoundColumn title="Round of 32" matchIds={['M9','M10','M11','M12','M13','M14','M15','M16']} showDate />
+          <RoundColumn title="Semifinal" matchIds={['SF2']} matches={matches} onPickWinner={onPickWinner} readOnly={readOnly} />
+          <RoundColumn title="Quarterfinals" matchIds={['QF3','QF4']} matches={matches} onPickWinner={onPickWinner} readOnly={readOnly} />
+          <RoundColumn title="Round of 16" matchIds={['R16_5','R16_6','R16_7','R16_8']} matches={matches} onPickWinner={onPickWinner} readOnly={readOnly} />
+          <RoundColumn title="Round of 32" matchIds={['M9','M10','M11','M12','M13','M14','M15','M16']} matches={matches} showDate onPickWinner={onPickWinner} readOnly={readOnly} />
         </div>
       </div>
 
@@ -85,12 +111,12 @@ export function BracketView() {
             type="number"
             min={0}
             inputMode="numeric"
-            value={state.totalGoals ?? ''}
+            value={totalGoals ?? ''}
             onChange={e => {
               const v = e.target.value;
-              setTotalGoals(v === '' ? null : Math.max(0, Number(v)));
+              onTotalGoals(v === '' ? null : Math.max(0, Number(v)));
             }}
-            disabled={isReadOnly}
+            disabled={readOnly}
             placeholder="e.g. 168"
           />
         </div>
@@ -101,17 +127,17 @@ export function BracketView() {
             className="form-input"
             type="text"
             maxLength={60}
-            value={state.topScorer}
-            onChange={e => setTopScorer(e.target.value)}
-            disabled={isReadOnly}
+            value={topScorer}
+            onChange={e => onTopScorer(e.target.value)}
+            disabled={readOnly}
             placeholder="e.g. Kylian Mbappé"
           />
         </div>
       </div>
 
-      {!isReadOnly && (
+      {showFooter && (
         <div className="stage-footer">
-          <button className="btn btn-outline" onClick={() => goToStep('third-place')}>
+          <button className="btn btn-outline" onClick={onBack}>
             ← Back to 3rd Place
           </button>
         </div>
@@ -119,3 +145,4 @@ export function BracketView() {
     </div>
   );
 }
+

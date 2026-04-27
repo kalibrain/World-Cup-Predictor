@@ -1,3 +1,4 @@
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AppProvider, useApp } from './context/AppContext';
 import { AuthProvider } from './context/AuthContext';
 import { Header } from './components/Header';
@@ -7,9 +8,11 @@ import { GroupStage } from './components/Groups/GroupStage';
 import { ThirdPlaceSelector } from './components/ThirdPlace/ThirdPlaceSelector';
 import { BracketView } from './components/Bracket/BracketView';
 import { SaveStatus } from './components/SaveStatus';
+import { AdminShell } from './components/Admin/AdminShell';
+import { RequireAdmin } from './components/Admin/RequireAdmin';
 import './App.css';
 
-function AppContent() {
+function PredictorShell() {
   const { state, goToStep } = useApp();
 
   const renderStep = () => {
@@ -28,8 +31,7 @@ function AppContent() {
   };
 
   return (
-    <div className="app">
-      <Header />
+    <>
       {state.step !== 'intro' && (
         <ProgressBar
           currentStep={state.step}
@@ -37,9 +39,26 @@ function AppContent() {
           onStepClick={goToStep}
         />
       )}
-      <main className="app-main">
-        {renderStep()}
-      </main>
+      <main className="app-main">{renderStep()}</main>
+    </>
+  );
+}
+
+function Shell() {
+  return (
+    <div className="app">
+      <Header />
+      <Routes>
+        <Route
+          path="/admin/*"
+          element={
+            <RequireAdmin>
+              <AdminShell />
+            </RequireAdmin>
+          }
+        />
+        <Route path="/*" element={<PredictorShell />} />
+      </Routes>
       <SaveStatus />
     </div>
   );
@@ -48,9 +67,11 @@ function AppContent() {
 export default function App() {
   return (
     <AuthProvider>
-      <AppProvider>
-        <AppContent />
-      </AppProvider>
+      <BrowserRouter>
+        <AppProvider>
+          <Shell />
+        </AppProvider>
+      </BrowserRouter>
     </AuthProvider>
   );
 }

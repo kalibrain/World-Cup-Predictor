@@ -1,6 +1,6 @@
 import type { Match } from '../../types';
 import { TEAM_MAP } from '../../data/teams';
-import { useApp } from '../../context/AppContext';
+import { useAppOrNull } from '../../context/AppContext';
 import { FlagIcon } from '../FlagIcon';
 
 interface BracketMatchProps {
@@ -8,10 +8,14 @@ interface BracketMatchProps {
   showDate?: boolean;
   isFinal?: boolean;
   is3PO?: boolean;
+  onPickWinner?: (matchId: string, winnerId: string) => void;
+  readOnly?: boolean;
 }
 
-export function BracketMatch({ match, showDate, isFinal, is3PO }: BracketMatchProps) {
-  const { pickMatchWinner, isReadOnly } = useApp();
+export function BracketMatch({ match, showDate, isFinal, is3PO, onPickWinner, readOnly }: BracketMatchProps) {
+  const app = useAppOrNull();
+  const pickWinner = onPickWinner ?? app?.pickMatchWinner;
+  const isReadOnly = readOnly ?? app?.isReadOnly ?? false;
 
   const team1 = match.slot1.teamId ? TEAM_MAP[match.slot1.teamId] : null;
   const team2 = match.slot2.teamId ? TEAM_MAP[match.slot2.teamId] : null;
@@ -20,7 +24,7 @@ export function BracketMatch({ match, showDate, isFinal, is3PO }: BracketMatchPr
     if (isReadOnly) return;
     if (!teamId) return;
     if (!match.slot1.teamId || !match.slot2.teamId) return; // both slots need teams
-    pickMatchWinner(match.id, teamId);
+    pickWinner?.(match.id, teamId);
   };
 
   const isSlot1Winner = match.winnerId && match.winnerId === match.slot1.teamId;
