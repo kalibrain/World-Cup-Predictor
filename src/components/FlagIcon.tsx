@@ -2,9 +2,10 @@ interface FlagIconProps {
   countryCode: string;
   teamName: string;
   size?: number;
+  loading?: 'lazy' | 'eager';
 }
 
-export function FlagIcon({ countryCode, teamName, size = 40 }: FlagIconProps) {
+export function FlagIcon({ countryCode, teamName, size = 40, loading = 'lazy' }: FlagIconProps) {
   const w = size;
   const h = Math.round(size * 3 / 4);
   return (
@@ -15,7 +16,7 @@ export function FlagIcon({ countryCode, teamName, size = 40 }: FlagIconProps) {
       width={w}
       height={h}
       alt={`${teamName} flag`}
-      loading="lazy"
+      loading={loading}
     />
   );
 }

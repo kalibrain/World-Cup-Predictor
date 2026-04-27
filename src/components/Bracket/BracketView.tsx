@@ -1,5 +1,6 @@
 import { useAppOrNull } from '../../context/AppContext';
 import { BracketMatch } from './BracketMatch';
+import { BracketPrintView } from './BracketPrintView';
 import { TEAM_MAP } from '../../data/teams';
 import { FlagIcon } from '../FlagIcon';
 import type { Match } from '../../types';
@@ -56,11 +57,16 @@ export function BracketView(props: BracketViewProps = {}) {
   const onTopScorer = props.onTopScorerChange ?? app?.setTopScorer ?? (() => {});
   const showFooter = props.showFooter ?? !readOnly;
   const onBack = props.onBack ?? (() => app?.goToStep('third-place'));
+  const isUserBracket = !props.matches && app !== null;
 
   const finalMatch = matches['FINAL'];
   const tpoMatch = matches['3PO'];
   const champion = finalMatch?.winnerId;
   const championTeam = champion ? TEAM_MAP[champion] : null;
+  const bracketComplete = isUserBracket
+    && Object.values(matches).every(m => Boolean(m.winnerId))
+    && totalGoals != null
+    && topScorer.trim().length > 0;
 
   return (
     <div className="bracket-screen">
@@ -70,8 +76,21 @@ export function BracketView(props: BracketViewProps = {}) {
           Click a team in each match to pick the winner. Work left to right, Round of 32 through to the Final.
         </p>
         {championTeam && (
-          <div className="champion-banner">
-            🏆 Champion: <FlagIcon countryCode={championTeam.countryCode} teamName={championTeam.name} size={24} /> {championTeam.name}
+          <div className="champion-row">
+            <div className="champion-banner">
+              🏆 Champion: <FlagIcon countryCode={championTeam.countryCode} teamName={championTeam.name} size={24} /> {championTeam.name}
+            </div>
+            {isUserBracket && (
+              <button
+                type="button"
+                className="btn btn-gold pdf-download-btn"
+                onClick={() => window.print()}
+                disabled={!bracketComplete}
+                title={bracketComplete ? 'Download your bracket as a PDF' : 'Pick every match and fill in total goals + top scorer to enable PDF download'}
+              >
+                ⬇ Download PDF
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -142,6 +161,8 @@ export function BracketView(props: BracketViewProps = {}) {
           </button>
         </div>
       )}
+
+      {isUserBracket && <BracketPrintView />}
     </div>
   );
 }

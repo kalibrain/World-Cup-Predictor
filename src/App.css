@@ -990,7 +990,6 @@ html, body {
 }
 
 .champion-banner {
-  margin-top: 16px;
   padding: 10px 20px;
   background: linear-gradient(135deg, var(--gold-dim), rgba(16, 185, 129, 0.15));
   border: 1px solid var(--gold);
@@ -998,7 +997,33 @@ html, body {
   color: var(--gold);
   font-size: 16px;
   font-weight: 700;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.champion-row {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.pdf-download-btn {
+  padding: 10px 22px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pdf-download-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .bracket-scroll-container {
@@ -1768,3 +1793,362 @@ html, body {
     align-items: stretch;
   }
 }
+
+/* ============================================================
+   Printable Bracket View (PDF export)
+   ============================================================ */
+/* Stays in the DOM (off-screen) so flag images load before print. */
+.print-view {
+  position: absolute;
+  left: -10000px;
+  top: 0;
+  width: 794px;
+  pointer-events: none;
+  opacity: 0;
+}
+
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 10mm;
+  }
+
+  html, body {
+    background: #fff !important;
+    color: #111 !important;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  .print-view, .print-view * {
+    visibility: visible;
+  }
+
+  .print-view {
+    display: block;
+    position: absolute;
+    inset: 0;
+    left: 0;
+    top: 0;
+    width: 100%;
+    opacity: 1;
+    pointer-events: auto;
+    background: #fff;
+    color: #111;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  .print-header {
+    border-bottom: 2px solid #C8A84B;
+    padding-bottom: 8px;
+    margin-bottom: 12px;
+  }
+
+  .print-header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .print-eyebrow {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    color: #C8A84B;
+    text-transform: uppercase;
+  }
+
+  .print-title {
+    font-size: 20px;
+    font-weight: 800;
+    color: #111;
+    margin: 2px 0 0;
+  }
+
+  .print-bracket-name {
+    font-size: 12px;
+    color: #444;
+    margin-top: 4px;
+  }
+
+  .print-champion {
+    text-align: right;
+    border: 1.5px solid #C8A84B;
+    border-radius: 6px;
+    padding: 6px 10px;
+    background: rgba(200, 168, 75, 0.08);
+  }
+
+  .print-champion-label {
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    color: #C8A84B;
+  }
+
+  .print-champion-name {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #111;
+    margin-top: 2px;
+  }
+
+  .print-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 8px;
+    font-size: 10px;
+    color: #333;
+  }
+
+  .print-meta-item strong {
+    color: #111;
+    font-weight: 700;
+    margin-right: 3px;
+  }
+
+  .print-section {
+    margin-top: 12px;
+  }
+
+  .print-section-title {
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: #C8A84B;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 3px;
+    margin-bottom: 8px;
+  }
+
+  .print-section-bracket {
+    page-break-before: always;
+  }
+
+  /* Groups */
+  .print-groups-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+  }
+
+  .print-group-card {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    overflow: hidden;
+    page-break-inside: avoid;
+  }
+
+  .print-group-header {
+    background: #f3f0e6;
+    color: #6b5424;
+    font-size: 10px;
+    font-weight: 800;
+    padding: 3px 6px;
+    border-bottom: 1px solid #ddd;
+    letter-spacing: 0.5px;
+  }
+
+  .print-group-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .print-group-row {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 6px;
+    border-bottom: 1px solid #eee;
+    font-size: 10px;
+  }
+
+  .print-group-row:last-child {
+    border-bottom: none;
+  }
+
+  .print-group-rank {
+    width: 14px;
+    font-weight: 700;
+    color: #888;
+    font-size: 9px;
+  }
+
+  .print-group-team {
+    color: #111;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Selected 3rd-place teams */
+  .print-third-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+  }
+
+  .print-third-card {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 10px;
+    page-break-inside: avoid;
+  }
+
+  .print-third-group {
+    font-weight: 700;
+    color: #6b5424;
+    font-size: 9px;
+    letter-spacing: 0.5px;
+  }
+
+  .print-third-team {
+    color: #111;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Bracket */
+  .print-bracket {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr 1fr 1.1fr;
+    gap: 6px;
+    align-items: stretch;
+  }
+
+  .print-round-col {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .print-round-title {
+    font-size: 8px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #6b5424;
+    text-align: center;
+    padding: 3px 0;
+    margin-bottom: 4px;
+    border-bottom: 1px solid #ddd;
+  }
+
+  .print-round-matches {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    gap: 4px;
+  }
+
+  .print-round-matches-final {
+    justify-content: center;
+    gap: 12px;
+  }
+
+  .print-match {
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    overflow: hidden;
+    background: #fff;
+    page-break-inside: avoid;
+    position: relative;
+  }
+
+  .print-match-final {
+    border: 1.5px solid #C8A84B;
+  }
+
+  .print-match-3po {
+    border: 1px solid #999;
+  }
+
+  .print-match-tag {
+    font-size: 8px;
+    font-weight: 800;
+    text-align: center;
+    padding: 2px;
+    letter-spacing: 1px;
+  }
+
+  .print-match-tag-final {
+    background: #fdf6e3;
+    color: #6b5424;
+    border-bottom: 1px solid #C8A84B;
+  }
+
+  .print-match-tag-3po {
+    background: #f1f1f1;
+    color: #555;
+    border-bottom: 1px solid #ccc;
+  }
+
+  .print-match-date {
+    font-size: 8px;
+    color: #777;
+    text-align: center;
+    padding: 1px 4px;
+    border-bottom: 1px solid #eee;
+  }
+
+  .print-match-id {
+    position: absolute;
+    top: 1px;
+    right: 3px;
+    font-size: 7px;
+    color: #aaa;
+    font-weight: 600;
+  }
+
+  .print-slot {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 5px;
+    border-bottom: 1px solid #eee;
+    font-size: 9px;
+    min-height: 18px;
+  }
+
+  .print-slot:last-child {
+    border-bottom: none;
+  }
+
+  .print-slot-winner {
+    background: rgba(16, 185, 129, 0.12);
+    border-left: 2px solid #10B981;
+    font-weight: 700;
+  }
+
+  .print-slot-loser {
+    color: #999;
+  }
+
+  .print-slot-name {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .print-slot-tbd {
+    color: #bbb;
+    font-style: italic;
+  }
+}
+
