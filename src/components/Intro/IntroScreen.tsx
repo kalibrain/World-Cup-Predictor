@@ -2,6 +2,23 @@ import { useMemo, useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 
+const lockDateFormatter = new Intl.DateTimeFormat(undefined, {
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
+});
+
+const formatLockDate = (isoDate: string) => {
+  const date = new Date(isoDate);
+  return Number.isNaN(date.getTime()) ? '' : lockDateFormatter.format(date);
+};
+
+const lockStatusLabel = (locksAt: string, isLocked: boolean) => {
+  const formatted = formatLockDate(locksAt);
+  if (!formatted) return isLocked ? 'Closed' : 'Open';
+  return isLocked ? `Closed on ${formatted}` : `Open until ${formatted}`;
+};
+
 export function IntroScreen() {
   const {
     selectedTournament,
@@ -151,7 +168,8 @@ export function IntroScreen() {
                       <div className="tournament-name">{tournament.tournament_name}</div>
                       <div className="tournament-meta">
                         {tournament.is_member ? 'Joined' : 'Public'}
-                        {tournament.is_locked ? ' • Locked' : ' • Open'}
+                        {' • '}
+                        {lockStatusLabel(tournament.locks_at, tournament.is_locked)}
                       </div>
                     </div>
                     <button
@@ -177,7 +195,9 @@ export function IntroScreen() {
                           <div>
                             <div className="tournament-name">{tournament.tournament_name}</div>
                             <div className="tournament-meta">
-                              Joined{tournament.is_locked ? ' • Locked' : ' • Open'}
+                              Joined
+                              {' • '}
+                              {lockStatusLabel(tournament.locks_at, tournament.is_locked)}
                             </div>
                           </div>
                           <button
