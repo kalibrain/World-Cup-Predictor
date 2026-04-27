@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 
 export function Header() {
   const {
@@ -12,6 +13,7 @@ export function Header() {
     clearTournamentSelection,
   } = useApp();
   const { user, isLoading, isGlobalAdmin, signOut } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const onAdminRoute = location.pathname.startsWith('/admin');
   const [menuOpen, setMenuOpen] = useState(false);
@@ -45,6 +47,13 @@ export function Header() {
     closeMenu();
     clearTournamentSelection();
   };
+  const handleToggleTheme = () => {
+    closeMenu();
+    toggleTheme();
+  };
+  const themeToggleLabel =
+    theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme';
+  const themeToggleIcon = theme === 'dark' ? '☀️' : '🌙';
 
   const showSwitch = Boolean(selectedTournament) && state.step !== 'intro';
   const showSignOut = !isLoading && Boolean(user);
@@ -93,6 +102,15 @@ export function Header() {
             </Link>
           )}
           {showSignOut && <div className="user-badge">{signedInLabel}</div>}
+          <button
+            type="button"
+            className="theme-toggle"
+            aria-label={themeToggleLabel}
+            title={themeToggleLabel}
+            onClick={toggleTheme}
+          >
+            <span aria-hidden="true">{themeToggleIcon}</span>
+          </button>
           {showSignOut && (
             <button className="btn btn-outline btn-sm" onClick={() => void signOut()}>
               Sign Out
@@ -154,6 +172,16 @@ export function Header() {
               {onAdminRoute ? 'Predictor' : 'Admin'}
             </Link>
           )}
+          <button
+            className="btn btn-outline"
+            onClick={handleToggleTheme}
+            role="menuitem"
+          >
+            <span aria-hidden="true" style={{ marginRight: 6 }}>
+              {themeToggleIcon}
+            </span>
+            {theme === 'dark' ? 'Light Theme' : 'Dark Theme'}
+          </button>
           {showSignOut && (
             <button className="btn btn-outline" onClick={handleSignOut} role="menuitem">
               Sign Out
