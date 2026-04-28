@@ -47,6 +47,7 @@ export function SettingsPanel({ tournament, onChanged }: Props) {
       status,
       starts_at: fromLocalInputValue(startsAt),
       locks_at: locksIso,
+      edition_id: tournament.edition_id,
     });
     setSaving(false);
     if (rpcError) {

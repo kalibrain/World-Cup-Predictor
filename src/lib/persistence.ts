@@ -295,11 +295,27 @@ export interface TournamentOverviewRow {
   starts_at: string | null;
   locks_at: string;
   is_locked: boolean;
+  edition_id: string;
+  edition_name: string;
   member_count: number;
   bracket_count: number;
+  created_at: string;
+}
+
+export interface TournamentEdition {
+  id: string;
+  name: string;
+  created_at: string;
+}
+
+export interface EditionOverviewRow {
+  edition_id: string;
+  edition_name: string;
+  tournament_count: number;
   results_groups_entered: number;
   results_matches_entered: number;
   tiebreakers_entered: boolean;
+  published_at: string | null;
   created_at: string;
 }
 
@@ -319,6 +335,34 @@ export interface TournamentResults {
   group_results: Record<string, string[]>;
   match_results: Record<string, string | null>;
   tiebreakers: { total_goals: number | null; top_scorer: string; updated_at: string; updated_by: string | null } | null;
+}
+
+export interface StandingsEditorPayload {
+  draft_group_results: Record<string, string[]>;
+  draft_match_results: Record<string, string | null>;
+  published_group_results: Record<string, string[]>;
+  published_match_results: Record<string, string | null>;
+  published_at: string | null;
+  draft_updated_at: string | null;
+}
+
+export interface PublishedStandings {
+  group_results: Record<string, string[]>;
+  match_results: Record<string, string | null>;
+  published_at: string | null;
+}
+
+export interface LeaderboardRow {
+  user_id: string;
+  display_name: string | null;
+  email: string | null;
+  bracket_id: string | null;
+  bracket_name: string | null;
+  group_points: number;
+  knockout_points: number;
+  total_points: number;
+  rank_position: number;
+  published_at: string | null;
 }
 
 export interface TournamentRow {
@@ -381,12 +425,12 @@ export async function adminDeleteBracket(bracketId: string): Promise<string | nu
 }
 
 export async function adminUpsertGroupResult(
-  tournamentId: string,
+  editionId: string,
   groupId: string,
   rankings: string[],
 ): Promise<string | null> {
   const { error } = await supabase.rpc('admin_upsert_group_result', {
-    p_tournament_id: tournamentId,
+    p_edition_id: editionId,
     p_group_id: groupId,
     p_rankings: rankings,
   });
@@ -394,12 +438,12 @@ export async function adminUpsertGroupResult(
 }
 
 export async function adminUpsertMatchResult(
-  tournamentId: string,
+  editionId: string,
   matchId: string,
   winnerId: string | null,
 ): Promise<string | null> {
   const { error } = await supabase.rpc('admin_upsert_match_result', {
-    p_tournament_id: tournamentId,
+    p_edition_id: editionId,
     p_match_id: matchId,
     p_winner_id: winnerId,
   });
@@ -407,21 +451,21 @@ export async function adminUpsertMatchResult(
 }
 
 export async function adminUpsertTiebreakers(
-  tournamentId: string,
+  editionId: string,
   totalGoals: number | null,
   topScorer: string,
 ): Promise<string | null> {
   const { error } = await supabase.rpc('admin_upsert_tiebreakers', {
-    p_tournament_id: tournamentId,
+    p_edition_id: editionId,
     p_total_goals: totalGoals,
     p_top_scorer: topScorer,
   });
   return error?.message ?? null;
 }
 
-export async function adminGetTournamentResults(tournamentId: string): Promise<{ data: TournamentResults | null; error: string | null }> {
+export async function adminGetEditionResults(editionId: string): Promise<{ data: TournamentResults | null; error: string | null }> {
   const { data, error } = await supabase
-    .rpc('admin_get_tournament_results', { p_tournament_id: tournamentId })
+    .rpc('admin_get_edition_results', { p_edition_id: editionId })
     .maybeSingle();
 
   if (error) return { data: null, error: error.message };
@@ -445,6 +489,7 @@ export async function adminUpsertTournament(params: {
   status: TournamentStatus;
   starts_at: string | null;
   locks_at: string;
+  edition_id?: string | null;
 }): Promise<{ data: TournamentRow | null; error: string | null }> {
   const { data, error } = await supabase.rpc('admin_upsert_tournament', {
     p_id: params.id,
@@ -453,9 +498,26 @@ export async function adminUpsertTournament(params: {
     p_status: params.status,
     p_starts_at: params.starts_at,
     p_locks_at: params.locks_at,
+    p_edition_id: params.edition_id ?? null,
   });
   return {
     data: (data as TournamentRow | null) ?? null,
+    error: error?.message ?? null,
+  };
+}
+
+export async function adminListEditionsOverview(): Promise<{ data: EditionOverviewRow[]; error: string | null }> {
+  const { data, error } = await supabase.rpc('admin_list_editions_overview');
+  return {
+    data: (data ?? []) as EditionOverviewRow[],
+    error: error?.message ?? null,
+  };
+}
+
+export async function adminCreateEdition(name: string): Promise<{ data: TournamentEdition | null; error: string | null }> {
+  const { data, error } = await supabase.rpc('admin_create_edition', { p_name: name });
+  return {
+    data: (data as TournamentEdition | null) ?? null,
     error: error?.message ?? null,
   };
 }
@@ -465,6 +527,86 @@ export async function adminArchiveTournament(tournamentId: string): Promise<stri
     p_tournament_id: tournamentId,
   });
   return error?.message ?? null;
+}
+
+export async function adminGetStandingsEditor(editionId: string): Promise<{ data: StandingsEditorPayload | null; error: string | null }> {
+  const { data, error } = await supabase
+    .rpc('admin_get_standings_editor', { p_edition_id: editionId })
+    .maybeSingle();
+
+  if (error) return { data: null, error: error.message };
+  if (!data) {
+    return {
+      data: {
+        draft_group_results: {},
+        draft_match_results: {},
+        published_group_results: {},
+        published_match_results: {},
+        published_at: null,
+        draft_updated_at: null,
+      },
+      error: null,
+    };
+  }
+
+  const row = data as StandingsEditorPayload;
+  return {
+    data: {
+      draft_group_results: row.draft_group_results ?? {},
+      draft_match_results: row.draft_match_results ?? {},
+      published_group_results: row.published_group_results ?? {},
+      published_match_results: row.published_match_results ?? {},
+      published_at: row.published_at ?? null,
+      draft_updated_at: row.draft_updated_at ?? null,
+    },
+    error: null,
+  };
+}
+
+export async function adminPublishStandingsUpdate(editionId: string): Promise<{ publishedAt: string | null; error: string | null }> {
+  const { data, error } = await supabase.rpc('admin_publish_standings_update', {
+    p_edition_id: editionId,
+  });
+  return {
+    publishedAt: (data as string | null) ?? null,
+    error: error?.message ?? null,
+  };
+}
+
+export async function getTournamentPublishedStandings(tournamentId: string): Promise<{ data: PublishedStandings | null; error: string | null }> {
+  const { data, error } = await supabase
+    .rpc('get_tournament_published_standings', { p_tournament_id: tournamentId })
+    .maybeSingle();
+
+  if (error) return { data: null, error: error.message };
+  if (!data) {
+    return { data: { group_results: {}, match_results: {}, published_at: null }, error: null };
+  }
+
+  const row = data as PublishedStandings;
+  return {
+    data: {
+      group_results: row.group_results ?? {},
+      match_results: row.match_results ?? {},
+      published_at: row.published_at ?? null,
+    },
+    error: null,
+  };
+}
+
+export async function getTournamentLeaderboard(tournamentId: string): Promise<{ data: LeaderboardRow[]; publishedAt: string | null; error: string | null }> {
+  const { data, error } = await supabase.rpc('get_tournament_leaderboard', {
+    p_tournament_id: tournamentId,
+  });
+
+  if (error) return { data: [], publishedAt: null, error: error.message };
+
+  const rows = (data ?? []) as LeaderboardRow[];
+  return {
+    data: rows,
+    publishedAt: rows[0]?.published_at ?? null,
+    error: null,
+  };
 }
 
 export async function adminGetBracket(bracketId: string): Promise<{ data: AdminBracketRow | null; error: string | null }> {

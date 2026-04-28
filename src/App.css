@@ -1844,6 +1844,240 @@ html, body {
   gap: 6px;
 }
 
+.admin-standings-panel {
+  padding-bottom: 84px;
+}
+
+.admin-flash {
+  background: rgba(76, 175, 80, 0.15);
+  border: 1px solid rgba(76, 175, 80, 0.5);
+  color: var(--text);
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  margin-bottom: 12px;
+  font-size: 13px;
+}
+
+.admin-standings-status {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  margin-bottom: 12px;
+}
+
+.admin-standings-status-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.admin-standings-status-divider {
+  color: var(--border);
+}
+
+.admin-standings-actions {
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+  padding: 12px 0;
+  margin-top: 16px;
+  z-index: 5;
+}
+
+.admin-standings-actions-meta {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.admin-standings-actions-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.leaderboard-page {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.leaderboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.leaderboard-header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.leaderboard-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+}
+
+.leaderboard-title {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--text);
+  margin: 0;
+}
+
+.leaderboard-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.leaderboard-asof {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.leaderboard-disclaimer {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--text-secondary);
+  max-width: 60ch;
+}
+
+.leaderboard-back {
+  flex-shrink: 0;
+}
+
+.leaderboard-empty {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 32px;
+  text-align: center;
+  color: var(--text-secondary);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+}
+
+.leaderboard-table-wrap {
+  overflow-x: auto;
+}
+
+.leaderboard-rank {
+  font-weight: 700;
+  width: 60px;
+}
+
+.leaderboard-total {
+  font-weight: 700;
+}
+
+.leaderboard-row-me {
+  background: var(--admin-th-bg);
+}
+
+.leaderboard-you {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-left: 4px;
+}
+
+.leaderboard-cards {
+  display: none;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.leaderboard-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.leaderboard-card-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.leaderboard-card-rank {
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--text);
+  min-width: 36px;
+}
+
+.leaderboard-card-name {
+  flex: 1;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.leaderboard-card-total {
+  font-weight: 700;
+  color: var(--text);
+}
+
+.leaderboard-card-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 720px) {
+  .leaderboard-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .leaderboard-table-wrap {
+    display: none;
+  }
+
+  .leaderboard-cards {
+    display: flex;
+  }
+
+  .admin-knockout-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-standings-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .admin-standings-actions-buttons {
+    justify-content: flex-end;
+  }
+}
+
 .admin-drawer-backdrop {
   position: fixed;
   inset: 0;

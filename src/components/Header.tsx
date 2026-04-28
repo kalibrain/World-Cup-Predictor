@@ -16,6 +16,7 @@ export function Header() {
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const onAdminRoute = location.pathname.startsWith('/admin');
+  const onLeaderboardRoute = location.pathname.startsWith('/leaderboard');
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLElement | null>(null);
 
@@ -56,6 +57,7 @@ export function Header() {
   const themeToggleIcon = theme === 'dark' ? '☀️' : '🌙';
 
   const showSwitch = Boolean(selectedTournament) && state.step !== 'intro';
+  const showLeaderboard = Boolean(selectedTournament);
   const showSignOut = !isLoading && Boolean(user);
   const signedInLabel = user?.email ?? user?.user_metadata?.full_name ?? 'Signed in';
 
@@ -92,6 +94,11 @@ export function Header() {
             <button className="btn btn-outline btn-sm" onClick={handleSwitchTournament}>
               Switch Tournament
             </button>
+          )}
+          {showLeaderboard && !onLeaderboardRoute && (
+            <Link to="/leaderboard" className="btn btn-outline btn-sm">
+              Leaderboard
+            </Link>
           )}
           {isGlobalAdmin && (
             <Link
@@ -161,6 +168,16 @@ export function Header() {
             <button className="btn btn-outline" onClick={handleSwitchTournament} role="menuitem">
               Switch Tournament
             </button>
+          )}
+          {showLeaderboard && !onLeaderboardRoute && (
+            <Link
+              to="/leaderboard"
+              className="btn btn-outline"
+              role="menuitem"
+              onClick={closeMenu}
+            >
+              Leaderboard
+            </Link>
           )}
           {isGlobalAdmin && (
             <Link

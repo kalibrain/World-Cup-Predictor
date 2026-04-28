@@ -5,7 +5,6 @@ import {
   type TournamentOverviewRow,
 } from '../../lib/persistence';
 import { MembersPanel } from './MembersPanel';
-import { ResultsPanel } from './ResultsPanel';
 import { SettingsPanel } from './SettingsPanel';
 
 export function TournamentDrilldown() {
@@ -49,7 +48,16 @@ export function TournamentDrilldown() {
               <p className="admin-subtitle">
                 {tournament.visibility} · {tournament.status} · {tournament.member_count} members · {tournament.bracket_count} brackets
               </p>
+              <p className="admin-subtitle">
+                Edition: <Link to={`/admin/editions/${tournament.edition_id}/standings`}>{tournament.edition_name}</Link>
+              </p>
             </div>
+            <Link
+              className="btn btn-outline btn-sm"
+              to={`/admin/editions/${tournament.edition_id}/standings`}
+            >
+              Manage standings
+            </Link>
           </div>
 
           <nav className="admin-tabs">
@@ -61,12 +69,6 @@ export function TournamentDrilldown() {
               Members
             </NavLink>
             <NavLink
-              to={`/admin/tournaments/${tournamentId}/results`}
-              className={({ isActive }) => `admin-tab ${isActive ? 'active' : ''}`}
-            >
-              Results
-            </NavLink>
-            <NavLink
               to={`/admin/tournaments/${tournamentId}/settings`}
               className={({ isActive }) => `admin-tab ${isActive ? 'active' : ''}`}
             >
@@ -76,7 +78,24 @@ export function TournamentDrilldown() {
 
           <Routes>
             <Route index element={<MembersPanel tournamentId={tournamentId} />} />
-            <Route path="results" element={<ResultsPanel tournamentId={tournamentId} />} />
+            <Route
+              path="standings"
+              element={
+                <Navigate
+                  to={`/admin/editions/${tournament.edition_id}/standings`}
+                  replace
+                />
+              }
+            />
+            <Route
+              path="results"
+              element={
+                <Navigate
+                  to={`/admin/editions/${tournament.edition_id}/standings`}
+                  replace
+                />
+              }
+            />
             <Route
               path="settings"
               element={

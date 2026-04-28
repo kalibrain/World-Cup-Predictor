@@ -11,6 +11,7 @@ import { BracketView } from './components/Bracket/BracketView';
 import { SaveStatus } from './components/SaveStatus';
 import { AdminShell } from './components/Admin/AdminShell';
 import { RequireAdmin } from './components/Admin/RequireAdmin';
+import { LeaderboardPage } from './components/Leaderboard/LeaderboardPage';
 import './App.css';
 
 function PredictorShell() {
@@ -58,6 +59,7 @@ function Shell() {
             </RequireAdmin>
           }
         />
+        <Route path="/leaderboard" element={<LeaderboardPage />} />
         <Route path="/*" element={<PredictorShell />} />
       </Routes>
       <SaveStatus />
