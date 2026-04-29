@@ -358,6 +358,8 @@ export interface LeaderboardRow {
   email: string | null;
   bracket_id: string | null;
   bracket_name: string | null;
+  predicted_total_goals: number | null;
+  predicted_top_scorer: string | null;
   group_points: number;
   knockout_points: number;
   total_points: number;
@@ -607,6 +609,23 @@ export async function getTournamentLeaderboard(tournamentId: string): Promise<{ 
     publishedAt: rows[0]?.published_at ?? null,
     error: null,
   };
+}
+
+export async function getTournamentLeaderboardBracket(
+  tournamentId: string,
+  bracketId: string,
+): Promise<{ data: AdminBracketRow | null; error: string | null }> {
+  const { data, error } = await supabase
+    .rpc('get_tournament_leaderboard_bracket', {
+      p_tournament_id: tournamentId,
+      p_bracket_id: bracketId,
+    })
+    .maybeSingle();
+
+  if (error) return { data: null, error: error.message };
+  if (!data) return { data: null, error: null };
+
+  return { data: data as AdminBracketRow, error: null };
 }
 
 export async function adminGetBracket(bracketId: string): Promise<{ data: AdminBracketRow | null; error: string | null }> {

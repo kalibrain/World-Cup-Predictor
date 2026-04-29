@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { isBracketComplete } from '../utils/bracketCompletion';
 
 export function Header() {
   const {
@@ -15,8 +16,8 @@ export function Header() {
   const { user, isLoading, isGlobalAdmin, signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
+  const navigate = useNavigate();
   const onAdminRoute = location.pathname.startsWith('/admin');
-  const onLeaderboardRoute = location.pathname.startsWith('/leaderboard');
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLElement | null>(null);
 
@@ -47,6 +48,7 @@ export function Header() {
   const handleSwitchTournament = () => {
     closeMenu();
     clearTournamentSelection();
+    navigate('/');
   };
   const handleToggleTheme = () => {
     closeMenu();
@@ -57,9 +59,8 @@ export function Header() {
   const themeToggleIcon = theme === 'dark' ? '☀️' : '🌙';
 
   const showSwitch = Boolean(selectedTournament) && state.step !== 'intro';
-  const showLeaderboard = Boolean(selectedTournament);
+  const showLeaderboard = Boolean(selectedTournament?.is_locked) && isBracketComplete(state);
   const showSignOut = !isLoading && Boolean(user);
-  const signedInLabel = user?.email ?? user?.user_metadata?.full_name ?? 'Signed in';
 
   const hasContext = Boolean(selectedTournament) || Boolean(state.bracketName);
 
@@ -95,7 +96,7 @@ export function Header() {
               Switch Tournament
             </button>
           )}
-          {showLeaderboard && !onLeaderboardRoute && (
+          {showLeaderboard && (
             <Link to="/leaderboard" className="btn btn-outline btn-sm">
               Leaderboard
             </Link>
@@ -108,7 +109,6 @@ export function Header() {
               {onAdminRoute ? 'Predictor' : 'Admin'}
             </Link>
           )}
-          {showSignOut && <div className="user-badge">{signedInLabel}</div>}
           <button
             type="button"
             className="theme-toggle"
@@ -159,17 +159,12 @@ export function Header() {
 
       {menuOpen && (
         <div className="header-menu" role="menu">
-          {showSignOut && (
-            <div className="header-menu-email" title={signedInLabel}>
-              {signedInLabel}
-            </div>
-          )}
           {showSwitch && (
             <button className="btn btn-outline" onClick={handleSwitchTournament} role="menuitem">
               Switch Tournament
             </button>
           )}
-          {showLeaderboard && !onLeaderboardRoute && (
+          {showLeaderboard && (
             <Link
               to="/leaderboard"
               className="btn btn-outline"
