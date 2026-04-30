@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createInitialMatches } from '../../data/bracket';
+import { TEAM_MAP } from '../../data/teams';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import {
@@ -31,6 +32,54 @@ function formatPublishedAt(iso: string | null): string {
 
 function displayName(row: LeaderboardRow): string {
   return row.display_name ?? row.email ?? row.user_id.slice(0, 8);
+}
+
+function teamName(teamId: string | null | undefined): string {
+  if (!teamId) return '';
+  return TEAM_MAP[teamId]?.name ?? teamId;
+}
+
+function TeamName({ teamId }: { teamId: string | null | undefined }) {
+  const name = teamName(teamId);
+  return name ? <span className="leaderboard-team-name">{name}</span> : <span className="admin-cell-secondary">—</span>;
+}
+
+function FinalistsCell({ row }: { row: LeaderboardRow }) {
+  const finalist1 = teamName(row.predicted_finalist_1);
+  const finalist2 = teamName(row.predicted_finalist_2);
+
+  if (!finalist1 || !finalist2) {
+    return <span className="admin-cell-secondary">—</span>;
+  }
+
+  return (
+    <span className="leaderboard-finalists" aria-label={`Finalists: ${finalist1} versus ${finalist2}`}>
+      {finalist1} vs {finalist2}
+    </span>
+  );
+}
+
+function MobileFinalPick({ row }: { row: LeaderboardRow }) {
+  const finalist1 = teamName(row.predicted_finalist_1);
+  const finalist2 = teamName(row.predicted_finalist_2);
+  const champion = teamName(row.predicted_champion);
+
+  if (!finalist1 || !finalist2) {
+    return <span className="admin-cell-secondary">—</span>;
+  }
+
+  const runnerUp = champion === finalist1 ? finalist2 : finalist1;
+
+  if (!champion) {
+    return <span className="leaderboard-finalists">{finalist1} vs {finalist2}</span>;
+  }
+
+  return (
+    <span className="leaderboard-mobile-finalists" aria-label={`Champion: ${champion}. Finalists: ${finalist1} versus ${finalist2}`}>
+      <strong>{champion}</strong>
+      <span> - {runnerUp}</span>
+    </span>
+  );
 }
 
 function mergeMatches(saved: Record<string, Match> | undefined): Record<string, Match> {
@@ -284,10 +333,8 @@ export function LeaderboardPage() {
                     <th>Rank</th>
                     <th>Player</th>
                     <th>Bracket</th>
-                    <th>Top scorer</th>
-                    <th>Total goals</th>
-                    <th>R32 pts</th>
-                    <th>Later pts</th>
+                    <th>Finalists</th>
+                    <th>Champion</th>
                     <th>Total</th>
                     <th>View</th>
                   </tr>
@@ -303,10 +350,8 @@ export function LeaderboardPage() {
                           {isMe && <span className="leaderboard-you"> (you)</span>}
                         </td>
                         <td>{row.bracket_name ?? <span className="admin-cell-secondary">—</span>}</td>
-                        <td>{row.predicted_top_scorer || <span className="admin-cell-secondary">—</span>}</td>
-                        <td>{row.predicted_total_goals ?? <span className="admin-cell-secondary">—</span>}</td>
-                        <td>{row.group_points}</td>
-                        <td>{row.knockout_points}</td>
+                        <td><FinalistsCell row={row} /></td>
+                        <td><TeamName teamId={row.predicted_champion} /></td>
                         <td className="leaderboard-total">{row.total_points}</td>
                         <td>
                           {row.bracket_id && (
@@ -341,11 +386,7 @@ export function LeaderboardPage() {
                     </div>
                     <div className="leaderboard-card-meta">
                       <span>{row.bracket_name ?? '—'}</span>
-                      <span>R32 {row.group_points} · Later {row.knockout_points}</span>
-                    </div>
-                    <div className="leaderboard-card-meta">
-                      <span>{row.predicted_top_scorer || 'Top scorer —'}</span>
-                      <span>Total goals {row.predicted_total_goals ?? '—'}</span>
+                      <MobileFinalPick row={row} />
                     </div>
                     {row.bracket_id && (
                       <button

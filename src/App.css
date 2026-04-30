@@ -2058,6 +2058,28 @@ html, body {
   font-weight: 700;
 }
 
+.leaderboard-finalists,
+.leaderboard-team-name {
+  color: var(--text);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.leaderboard-finalists {
+  display: inline-block;
+  min-width: 160px;
+}
+
+.leaderboard-mobile-finalists {
+  color: var(--text-secondary);
+  overflow-wrap: anywhere;
+  text-align: right;
+}
+
+.leaderboard-mobile-finalists strong {
+  color: var(--text);
+}
+
 .leaderboard-row-me {
   background: var(--admin-th-bg);
 }
@@ -2114,9 +2136,15 @@ html, body {
 .leaderboard-card-meta {
   display: flex;
   justify-content: space-between;
+  align-items: flex-start;
   gap: 10px;
   font-size: 12px;
   color: var(--text-secondary);
+}
+
+.leaderboard-card-meta > span:first-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .leaderboard-card-view {

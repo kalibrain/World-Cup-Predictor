@@ -362,6 +362,9 @@ export interface LeaderboardRow {
   bracket_name: string | null;
   predicted_total_goals: number | null;
   predicted_top_scorer: string | null;
+  predicted_finalist_1: string | null;
+  predicted_finalist_2: string | null;
+  predicted_champion: string | null;
   group_points: number;
   knockout_points: number;
   total_points: number;
