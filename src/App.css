@@ -1478,12 +1478,19 @@ html, body {
     display: none;
   }
 
+  .bracket-mirror > :nth-child(6),
+  .bracket-mirror > :nth-child(7),
+  .bracket-mirror > :nth-child(8),
+  .bracket-mirror > :nth-child(9) {
+    margin-top: 12px;
+  }
+
   /* Spacing between distinct rounds; paired left/right halves flow together. */
   .bracket-mirror > :nth-child(2),
   .bracket-mirror > :nth-child(3),
   .bracket-mirror > :nth-child(4),
   .bracket-mirror > :nth-child(5) {
-    margin-top: 24px;
+    margin-top: 28px;
   }
 
   .bracket-round-col,
@@ -1497,7 +1504,7 @@ html, body {
   .round-matches {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 10px;
+    gap: 14px 12px;
     padding: 0;
   }
 
