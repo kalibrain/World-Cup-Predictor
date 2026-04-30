@@ -1175,6 +1175,7 @@ html, body {
   padding: 0 6px;
   flex: 1;
   justify-content: space-around;
+  gap: 6px;
 }
 
 /* Final + 3PO: vertically centered in the column */
@@ -1216,43 +1217,16 @@ html, body {
   width: 180px;
 }
 
-.match-date {
+.match-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
   font-size: 10px;
   color: var(--text-secondary);
-  text-align: center;
-  padding: 3px 8px;
+  padding: 4px 8px;
   background: var(--surface-inset);
   border-bottom: 1px solid var(--border);
-}
-
-.final-label {
-  font-size: 11px;
-  font-weight: 800;
-  color: var(--gold);
-  text-align: center;
-  padding: 5px;
-  background: var(--gold-dim);
-  border-bottom: 1px solid var(--gold);
-  letter-spacing: 1px;
-}
-
-.tpo-label {
-  font-size: 10px;
-  font-weight: 700;
-  color: var(--text-secondary);
-  text-align: center;
-  padding: 4px;
-  background: var(--surface-inset);
-  border-bottom: 1px solid var(--border);
-  letter-spacing: 1px;
-  text-transform: uppercase;
-}
-
-.match-id-label {
-  font-size: 9px;
-  color: var(--text-muted-softer);
-  text-align: center;
-  padding: 1px 4px;
 }
 
 .match-slot {
@@ -1284,17 +1258,6 @@ html, body {
 
 .match-slot.loser {
   opacity: 0.45;
-}
-
-.match-vs {
-  text-align: center;
-  font-size: 9px;
-  font-weight: 700;
-  color: var(--text-muted-softer);
-  padding: 1px;
-  background: var(--surface-inset);
-  text-transform: uppercase;
-  letter-spacing: 1px;
 }
 
 .slot-flag {

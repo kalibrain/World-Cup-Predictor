@@ -16,6 +16,13 @@ export function BracketMatch({ match, showDate, isFinal, is3PO, onPickWinner, re
   const app = useAppOrNull();
   const pickWinner = onPickWinner ?? app?.pickMatchWinner;
   const isReadOnly = readOnly ?? app?.isReadOnly ?? false;
+  const headerLabel = showDate && match.date
+    ? match.date
+    : isFinal
+      ? 'Final'
+      : is3PO
+        ? '3rd Place'
+        : '';
 
   const team1 = match.slot1.teamId ? TEAM_MAP[match.slot1.teamId] : null;
   const team2 = match.slot2.teamId ? TEAM_MAP[match.slot2.teamId] : null;
@@ -33,16 +40,10 @@ export function BracketMatch({ match, showDate, isFinal, is3PO, onPickWinner, re
 
   return (
     <div className={`bracket-match ${isFinal ? 'final-match' : ''} ${is3PO ? 'third-place-match' : ''}`}>
-      {showDate && match.date && (
-        <div className="match-date">{match.date}</div>
-      )}
-      {isFinal && (
-        <div className="final-label">🏆 FINAL</div>
-      )}
-      {is3PO && (
-        <div className="tpo-label">3rd Place</div>
-      )}
-      <div className="match-id-label">{match.id}</div>
+      <div className="match-header">
+        <span>{headerLabel}</span>
+        <span>{match.id}</span>
+      </div>
 
       <div
         className={`match-slot ${isSlot1Winner ? 'winner' : ''} ${!isSlot1Winner && match.winnerId ? 'loser' : ''} ${canPick && team1 ? 'clickable' : ''}`}
@@ -58,8 +59,6 @@ export function BracketMatch({ match, showDate, isFinal, is3PO, onPickWinner, re
           <span className="slot-tbd">TBD</span>
         )}
       </div>
-
-      <div className="match-vs">vs</div>
 
       <div
         className={`match-slot ${isSlot2Winner ? 'winner' : ''} ${!isSlot2Winner && match.winnerId ? 'loser' : ''} ${canPick && team2 ? 'clickable' : ''}`}
