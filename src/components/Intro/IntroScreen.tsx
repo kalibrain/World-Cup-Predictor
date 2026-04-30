@@ -294,20 +294,6 @@ export function IntroScreen() {
         {isSaving && <p className="intro-auth-note">Saving your latest picks...</p>}
       </div>
 
-      <div className="intro-steps">
-        <div className="intro-step">
-          <div className="intro-step-num">1</div>
-          <div className="intro-step-text">Choose tournament</div>
-        </div>
-        <div className="intro-step">
-          <div className="intro-step-num">2</div>
-          <div className="intro-step-text">Rank 12 groups</div>
-        </div>
-        <div className="intro-step">
-          <div className="intro-step-num">3</div>
-          <div className="intro-step-text">Pick knockout winners</div>
-        </div>
-      </div>
     </div>
   );
 }
