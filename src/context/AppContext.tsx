@@ -377,6 +377,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!assignment) return null;
 
     const newMatches = { ...prev.matches };
+    const preserveWinner = (
+      winnerId: string | null,
+      slot1TeamId: string | null,
+      slot2TeamId: string | null,
+    ): string | null => (
+      winnerId && (winnerId === slot1TeamId || winnerId === slot2TeamId) ? winnerId : null
+    );
 
     const getTeamByRank = (groupId: string, rank: number): string | null => {
       const group = prev.groups[groupId];
@@ -388,113 +395,124 @@ export function AppProvider({ children }: { children: ReactNode }) {
       ...newMatches['M1'],
       slot1: { teamId: getTeamByRank('E', 0), source: 'Winner Group E' },
       slot2: { teamId: assignment['M1'] ? getTeamByRank(assignment['M1'], 2) : null, source: `3rd Group ${assignment['M1'] ?? ''}` },
-      winnerId: null,
     };
+    newMatches['M1'].winnerId = preserveWinner(newMatches['M1'].winnerId, newMatches['M1'].slot1.teamId, newMatches['M1'].slot2.teamId);
     newMatches['M2'] = {
       ...newMatches['M2'],
       slot1: { teamId: getTeamByRank('I', 0), source: 'Winner Group I' },
       slot2: { teamId: assignment['M2'] ? getTeamByRank(assignment['M2'], 2) : null, source: `3rd Group ${assignment['M2'] ?? ''}` },
-      winnerId: null,
     };
+    newMatches['M2'].winnerId = preserveWinner(newMatches['M2'].winnerId, newMatches['M2'].slot1.teamId, newMatches['M2'].slot2.teamId);
     newMatches['M3'] = {
       ...newMatches['M3'],
       slot1: { teamId: getTeamByRank('A', 1), source: 'Runner-up Group A' },
       slot2: { teamId: getTeamByRank('B', 1), source: 'Runner-up Group B' },
-      winnerId: null,
     };
+    newMatches['M3'].winnerId = preserveWinner(newMatches['M3'].winnerId, newMatches['M3'].slot1.teamId, newMatches['M3'].slot2.teamId);
     newMatches['M4'] = {
       ...newMatches['M4'],
       slot1: { teamId: getTeamByRank('F', 0), source: 'Winner Group F' },
       slot2: { teamId: getTeamByRank('C', 1), source: 'Runner-up Group C' },
-      winnerId: null,
     };
+    newMatches['M4'].winnerId = preserveWinner(newMatches['M4'].winnerId, newMatches['M4'].slot1.teamId, newMatches['M4'].slot2.teamId);
     newMatches['M5'] = {
       ...newMatches['M5'],
       slot1: { teamId: getTeamByRank('K', 1), source: 'Runner-up Group K' },
       slot2: { teamId: getTeamByRank('L', 1), source: 'Runner-up Group L' },
-      winnerId: null,
     };
+    newMatches['M5'].winnerId = preserveWinner(newMatches['M5'].winnerId, newMatches['M5'].slot1.teamId, newMatches['M5'].slot2.teamId);
     newMatches['M6'] = {
       ...newMatches['M6'],
       slot1: { teamId: getTeamByRank('H', 0), source: 'Winner Group H' },
       slot2: { teamId: getTeamByRank('J', 1), source: 'Runner-up Group J' },
-      winnerId: null,
     };
+    newMatches['M6'].winnerId = preserveWinner(newMatches['M6'].winnerId, newMatches['M6'].slot1.teamId, newMatches['M6'].slot2.teamId);
     newMatches['M7'] = {
       ...newMatches['M7'],
       slot1: { teamId: getTeamByRank('D', 0), source: 'Winner Group D' },
       slot2: { teamId: assignment['M7'] ? getTeamByRank(assignment['M7'], 2) : null, source: `3rd Group ${assignment['M7'] ?? ''}` },
-      winnerId: null,
     };
+    newMatches['M7'].winnerId = preserveWinner(newMatches['M7'].winnerId, newMatches['M7'].slot1.teamId, newMatches['M7'].slot2.teamId);
     newMatches['M8'] = {
       ...newMatches['M8'],
       slot1: { teamId: getTeamByRank('G', 0), source: 'Winner Group G' },
       slot2: { teamId: assignment['M8'] ? getTeamByRank(assignment['M8'], 2) : null, source: `3rd Group ${assignment['M8'] ?? ''}` },
-      winnerId: null,
     };
+    newMatches['M8'].winnerId = preserveWinner(newMatches['M8'].winnerId, newMatches['M8'].slot1.teamId, newMatches['M8'].slot2.teamId);
     newMatches['M9'] = {
       ...newMatches['M9'],
       slot1: { teamId: getTeamByRank('C', 0), source: 'Winner Group C' },
       slot2: { teamId: getTeamByRank('F', 1), source: 'Runner-up Group F' },
-      winnerId: null,
     };
+    newMatches['M9'].winnerId = preserveWinner(newMatches['M9'].winnerId, newMatches['M9'].slot1.teamId, newMatches['M9'].slot2.teamId);
     newMatches['M10'] = {
       ...newMatches['M10'],
       slot1: { teamId: getTeamByRank('E', 1), source: 'Runner-up Group E' },
       slot2: { teamId: getTeamByRank('I', 1), source: 'Runner-up Group I' },
-      winnerId: null,
     };
+    newMatches['M10'].winnerId = preserveWinner(newMatches['M10'].winnerId, newMatches['M10'].slot1.teamId, newMatches['M10'].slot2.teamId);
     newMatches['M11'] = {
       ...newMatches['M11'],
       slot1: { teamId: getTeamByRank('A', 0), source: 'Winner Group A' },
       slot2: { teamId: assignment['M11'] ? getTeamByRank(assignment['M11'], 2) : null, source: `3rd Group ${assignment['M11'] ?? ''}` },
-      winnerId: null,
     };
+    newMatches['M11'].winnerId = preserveWinner(newMatches['M11'].winnerId, newMatches['M11'].slot1.teamId, newMatches['M11'].slot2.teamId);
     newMatches['M12'] = {
       ...newMatches['M12'],
       slot1: { teamId: getTeamByRank('L', 0), source: 'Winner Group L' },
       slot2: { teamId: assignment['M12'] ? getTeamByRank(assignment['M12'], 2) : null, source: `3rd Group ${assignment['M12'] ?? ''}` },
-      winnerId: null,
     };
+    newMatches['M12'].winnerId = preserveWinner(newMatches['M12'].winnerId, newMatches['M12'].slot1.teamId, newMatches['M12'].slot2.teamId);
     newMatches['M13'] = {
       ...newMatches['M13'],
       slot1: { teamId: getTeamByRank('J', 0), source: 'Winner Group J' },
       slot2: { teamId: getTeamByRank('H', 1), source: 'Runner-up Group H' },
-      winnerId: null,
     };
+    newMatches['M13'].winnerId = preserveWinner(newMatches['M13'].winnerId, newMatches['M13'].slot1.teamId, newMatches['M13'].slot2.teamId);
     newMatches['M14'] = {
       ...newMatches['M14'],
       slot1: { teamId: getTeamByRank('D', 1), source: 'Runner-up Group D' },
       slot2: { teamId: getTeamByRank('G', 1), source: 'Runner-up Group G' },
-      winnerId: null,
     };
+    newMatches['M14'].winnerId = preserveWinner(newMatches['M14'].winnerId, newMatches['M14'].slot1.teamId, newMatches['M14'].slot2.teamId);
     newMatches['M15'] = {
       ...newMatches['M15'],
       slot1: { teamId: getTeamByRank('B', 0), source: 'Winner Group B' },
       slot2: { teamId: assignment['M15'] ? getTeamByRank(assignment['M15'], 2) : null, source: `3rd Group ${assignment['M15'] ?? ''}` },
-      winnerId: null,
     };
+    newMatches['M15'].winnerId = preserveWinner(newMatches['M15'].winnerId, newMatches['M15'].slot1.teamId, newMatches['M15'].slot2.teamId);
     newMatches['M16'] = {
       ...newMatches['M16'],
       slot1: { teamId: getTeamByRank('K', 0), source: 'Winner Group K' },
       slot2: { teamId: assignment['M16'] ? getTeamByRank(assignment['M16'], 2) : null, source: `3rd Group ${assignment['M16'] ?? ''}` },
-      winnerId: null,
     };
+    newMatches['M16'].winnerId = preserveWinner(newMatches['M16'].winnerId, newMatches['M16'].slot1.teamId, newMatches['M16'].slot2.teamId);
 
-    for (const matchId of Object.keys(BRACKET_FEED)) {
+    for (const [matchId, [feed1, feed2]] of Object.entries(BRACKET_FEED)) {
+      const winner1 = newMatches[feed1]?.winnerId ?? null;
+      const winner2 = newMatches[feed2]?.winnerId ?? null;
       newMatches[matchId] = {
         ...newMatches[matchId],
-        slot1: { teamId: null },
-        slot2: { teamId: null },
-        winnerId: null,
+        slot1: { teamId: winner1, source: `Winner ${feed1}` },
+        slot2: { teamId: winner2, source: `Winner ${feed2}` },
       };
+      newMatches[matchId].winnerId = preserveWinner(newMatches[matchId].winnerId, winner1, winner2);
     }
+
+    const sf1 = newMatches['SF1'];
+    const sf2 = newMatches['SF2'];
+    const sf1Loser = sf1.winnerId
+      ? (sf1.winnerId === sf1.slot1.teamId ? sf1.slot2.teamId : sf1.slot1.teamId)
+      : null;
+    const sf2Loser = sf2.winnerId
+      ? (sf2.winnerId === sf2.slot1.teamId ? sf2.slot2.teamId : sf2.slot1.teamId)
+      : null;
     newMatches['3PO'] = {
       ...newMatches['3PO'],
-      slot1: { teamId: null },
-      slot2: { teamId: null },
-      winnerId: null,
+      slot1: { teamId: sf1Loser, source: 'SF1 Loser' },
+      slot2: { teamId: sf2Loser, source: 'SF2 Loser' },
     };
+    newMatches['3PO'].winnerId = preserveWinner(newMatches['3PO'].winnerId, sf1Loser, sf2Loser);
 
     return {
       ...prev,
@@ -526,6 +544,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (stepIndex(step) > stepIndex(prev.furthestStep)) return prev;
       if (step === 'intro') return prev;
       if (step === 'bracket' && prev.step === 'third-place') {
+        if (isReadOnly) {
+          return { ...prev, step };
+        }
         const seeded = seedBracketFromThirdPlace(prev);
         if (!seeded) return prev;
         return {
@@ -536,7 +557,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
       return { ...prev, step };
     });
-  }, [seedBracketFromThirdPlace]);
+  }, [isReadOnly, seedBracketFromThirdPlace]);
 
   const recomputeBracket = useCallback(() => {
     if (isReadOnly) return;
