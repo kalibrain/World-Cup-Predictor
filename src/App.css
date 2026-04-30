@@ -1838,6 +1838,74 @@ html, body {
   margin-top: 8px;
 }
 
+.admin-third-place-picker {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+  margin-bottom: 16px;
+}
+
+.admin-third-place-picker-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.admin-third-place-picker-head .admin-section-title {
+  margin-top: 0;
+}
+
+.admin-third-place-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 8px;
+}
+
+.admin-third-place-option {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text-secondary);
+  padding: 9px 10px;
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+  min-height: 62px;
+}
+
+.admin-third-place-option:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.admin-third-place-option-selected {
+  border-color: var(--gold);
+  background: var(--gold-dim);
+  color: var(--text);
+  font-weight: 700;
+}
+
+.admin-third-place-group {
+  font-size: 11px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.admin-third-place-team {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  color: var(--text);
+  font-weight: 700;
+}
+
 .admin-group-wrap {
   display: flex;
   flex-direction: column;

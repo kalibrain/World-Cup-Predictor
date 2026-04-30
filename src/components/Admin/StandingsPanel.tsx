@@ -4,6 +4,7 @@ import {
   adminPublishStandingsUpdate,
   adminUpsertGroupResult,
   adminUpsertMatchResult,
+  adminUpsertThirdPlaceQualifiers,
   adminUpsertTiebreakers,
   adminGetEditionResults,
   type StandingsEditorPayload,
@@ -54,11 +55,19 @@ function rankingsEqual(a: string[] | undefined, b: string[] | undefined): boolea
   return true;
 }
 
+function stringArraysEqual(a: string[], b: string[]): boolean {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) return false;
+  }
+  return true;
+}
+
 export function StandingsPanel({ editionId }: { editionId: string }) {
   const [data, setData] = useState<StandingsEditorPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [section, setSection] = useState<'groups' | 'knockout' | 'tiebreakers'>('groups');
+  const [section, setSection] = useState<'groups' | 'third-place' | 'knockout' | 'tiebreakers'>('groups');
   const [savingDraft, setSavingDraft] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [flash, setFlash] = useState<string | null>(null);
@@ -66,6 +75,7 @@ export function StandingsPanel({ editionId }: { editionId: string }) {
   // Local edits (component state) — committed to draft tables only on Save Draft.
   const [localGroups, setLocalGroups] = useState<Record<string, string[]>>({});
   const [localMatches, setLocalMatches] = useState<Record<string, string | null>>({});
+  const [localThirdPlaceQualifiers, setLocalThirdPlaceQualifiers] = useState<string[]>([]);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -79,6 +89,7 @@ export function StandingsPanel({ editionId }: { editionId: string }) {
     setData(payload);
     setLocalGroups(payload?.draft_group_results ?? {});
     setLocalMatches(payload?.draft_match_results ?? {});
+    setLocalThirdPlaceQualifiers(payload?.draft_third_place_qualifiers ?? []);
     setLoading(false);
   }, [editionId]);
 
@@ -89,6 +100,7 @@ export function StandingsPanel({ editionId }: { editionId: string }) {
 
   const baselineGroups = useMemo(() => data?.draft_group_results ?? {}, [data]);
   const baselineMatches = useMemo(() => data?.draft_match_results ?? {}, [data]);
+  const baselineThirdPlaceQualifiers = useMemo(() => data?.draft_third_place_qualifiers ?? [], [data]);
 
   const dirtyGroupIds = useMemo(() => {
     const ids = new Set<string>();
@@ -114,6 +126,11 @@ export function StandingsPanel({ editionId }: { editionId: string }) {
   }, [localMatches, baselineMatches]);
 
   const isDirty = dirtyGroupIds.size > 0 || dirtyMatchIds.size > 0;
+  const thirdPlaceDirty = useMemo(
+    () => !stringArraysEqual([...localThirdPlaceQualifiers].sort(), [...baselineThirdPlaceQualifiers].sort()),
+    [baselineThirdPlaceQualifiers, localThirdPlaceQualifiers],
+  );
+  const pendingChangeCount = dirtyGroupIds.size + dirtyMatchIds.size + (thirdPlaceDirty ? 1 : 0);
 
   const groups = useMemo(() => {
     return GROUP_IDS.map(id => buildGroupFromRankings(id, localGroups[id]));
@@ -127,6 +144,14 @@ export function StandingsPanel({ editionId }: { editionId: string }) {
     setLocalMatches(prev => ({ ...prev, [matchId]: winnerId }));
   };
 
+  const toggleThirdPlaceQualifier = (groupId: string) => {
+    setLocalThirdPlaceQualifiers(prev => {
+      if (prev.includes(groupId)) return prev.filter(id => id !== groupId);
+      if (prev.length >= 8) return prev;
+      return [...prev, groupId];
+    });
+  };
+
   const persistDraft = async (): Promise<string | null> => {
     for (const groupId of dirtyGroupIds) {
       const rankings = localGroups[groupId];
@@ -137,6 +162,10 @@ export function StandingsPanel({ editionId }: { editionId: string }) {
     for (const matchId of dirtyMatchIds) {
       const winner = localMatches[matchId] ?? null;
       const err = await adminUpsertMatchResult(editionId, matchId, winner);
+      if (err) return err;
+    }
+    if (thirdPlaceDirty) {
+      const err = await adminUpsertThirdPlaceQualifiers(editionId, [...localThirdPlaceQualifiers].sort());
       if (err) return err;
     }
     return null;
@@ -165,7 +194,7 @@ export function StandingsPanel({ editionId }: { editionId: string }) {
     setError(null);
     setPublishing(true);
 
-    if (isDirty) {
+    if (isDirty || thirdPlaceDirty) {
       const draftErr = await persistDraft();
       if (draftErr) {
         setPublishing(false);
@@ -198,13 +227,16 @@ export function StandingsPanel({ editionId }: { editionId: string }) {
           <span className="admin-standings-status-label">{draftSavedLabel}</span>
           <span className="admin-standings-status-divider">·</span>
           <span className="admin-standings-status-label">{publishedLabel}</span>
-          {isDirty && <span className="admin-pill admin-pill-warn">Unsaved changes</span>}
+          {(isDirty || thirdPlaceDirty) && <span className="admin-pill admin-pill-warn">Unsaved changes</span>}
         </div>
       </div>
 
       <nav className="admin-subtabs">
         <button className={`admin-subtab ${section === 'groups' ? 'active' : ''}`} onClick={() => setSection('groups')}>
           Group standings
+        </button>
+        <button className={`admin-subtab ${section === 'third-place' ? 'active' : ''}`} onClick={() => setSection('third-place')}>
+          Third-place qualifiers
         </button>
         <button className={`admin-subtab ${section === 'knockout' ? 'active' : ''}`} onClick={() => setSection('knockout')}>
           Knockout winners
@@ -227,6 +259,7 @@ export function StandingsPanel({ editionId }: { editionId: string }) {
                 <GroupCard
                   group={g}
                   onRankingsChange={(groupId, rankings) => handleGroupChange(groupId, rankings)}
+                  readOnly={false}
                   rankLabel="Drag to set actual order"
                 />
                 {dirtyGroupIds.has(g.id) && <div className="admin-cell-secondary">Edited</div>}
@@ -234,6 +267,15 @@ export function StandingsPanel({ editionId }: { editionId: string }) {
             ))}
           </div>
         </>
+      )}
+
+      {!loading && section === 'third-place' && (
+        <ThirdPlaceQualifierPicker
+          groups={groups}
+          selected={localThirdPlaceQualifiers}
+          dirty={thirdPlaceDirty}
+          onToggle={toggleThirdPlaceQualifier}
+        />
       )}
 
       {!loading && section === 'knockout' && (
@@ -265,15 +307,15 @@ export function StandingsPanel({ editionId }: { editionId: string }) {
       {!loading && section !== 'tiebreakers' && (
         <div className="admin-standings-actions">
           <div className="admin-standings-actions-meta">
-            {isDirty
-              ? `${dirtyGroupIds.size + dirtyMatchIds.size} pending change${dirtyGroupIds.size + dirtyMatchIds.size === 1 ? '' : 's'}`
+            {pendingChangeCount > 0
+              ? `${pendingChangeCount} pending change${pendingChangeCount === 1 ? '' : 's'}`
               : 'All changes saved'}
           </div>
           <div className="admin-standings-actions-buttons">
             <button
               className="btn btn-outline btn-sm"
               onClick={() => void handleSaveDraft()}
-              disabled={!isDirty || savingDraft || publishing}
+              disabled={pendingChangeCount === 0 || savingDraft || publishing}
             >
               {savingDraft ? 'Saving…' : 'Save Draft'}
             </button>
@@ -287,6 +329,54 @@ export function StandingsPanel({ editionId }: { editionId: string }) {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+interface ThirdPlaceQualifierPickerProps {
+  groups: Group[];
+  selected: string[];
+  dirty: boolean;
+  onToggle: (groupId: string) => void;
+}
+
+function ThirdPlaceQualifierPicker({ groups, selected, dirty, onToggle }: ThirdPlaceQualifierPickerProps) {
+  return (
+    <div className="admin-third-place-picker">
+      <div className="admin-third-place-picker-head">
+        <div>
+          <h3 className="admin-section-title">Third-place qualifiers</h3>
+          <p className="admin-help">Select the 8 third-place teams that reached the Round of 32.</p>
+        </div>
+        <span className={`admin-pill ${selected.length === 8 ? '' : 'admin-pill-warn'}`}>
+          {selected.length}/8 selected
+        </span>
+      </div>
+      <div className="admin-third-place-grid">
+        {groups.map(group => {
+          const groupId = group.id;
+          const isSelected = selected.includes(groupId);
+          const thirdPlaceTeam = TEAM_MAP[group.rankings[2]];
+          return (
+            <button
+              key={groupId}
+              type="button"
+              className={`admin-third-place-option ${isSelected ? 'admin-third-place-option-selected' : ''}`}
+              onClick={() => onToggle(groupId)}
+              disabled={!isSelected && selected.length >= 8}
+            >
+              <span className="admin-third-place-group">Group {groupId}</span>
+              <span className="admin-third-place-team">
+                {thirdPlaceTeam && (
+                  <FlagIcon countryCode={thirdPlaceTeam.countryCode} teamName={thirdPlaceTeam.name} size={24} />
+                )}
+                {thirdPlaceTeam?.name ?? '3rd place'}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+      {dirty && <div className="admin-cell-secondary">Third-place qualifiers edited</div>}
     </div>
   );
 }

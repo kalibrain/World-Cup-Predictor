@@ -340,8 +340,10 @@ export interface TournamentResults {
 export interface StandingsEditorPayload {
   draft_group_results: Record<string, string[]>;
   draft_match_results: Record<string, string | null>;
+  draft_third_place_qualifiers: string[];
   published_group_results: Record<string, string[]>;
   published_match_results: Record<string, string | null>;
+  published_third_place_qualifiers: string[];
   published_at: string | null;
   draft_updated_at: string | null;
 }
@@ -452,6 +454,17 @@ export async function adminUpsertMatchResult(
   return error?.message ?? null;
 }
 
+export async function adminUpsertThirdPlaceQualifiers(
+  editionId: string,
+  groupIds: string[],
+): Promise<string | null> {
+  const { error } = await supabase.rpc('admin_upsert_third_place_qualifiers', {
+    p_edition_id: editionId,
+    p_group_ids: groupIds,
+  });
+  return error?.message ?? null;
+}
+
 export async function adminUpsertTiebreakers(
   editionId: string,
   totalGoals: number | null,
@@ -542,8 +555,10 @@ export async function adminGetStandingsEditor(editionId: string): Promise<{ data
       data: {
         draft_group_results: {},
         draft_match_results: {},
+        draft_third_place_qualifiers: [],
         published_group_results: {},
         published_match_results: {},
+        published_third_place_qualifiers: [],
         published_at: null,
         draft_updated_at: null,
       },
@@ -556,8 +571,10 @@ export async function adminGetStandingsEditor(editionId: string): Promise<{ data
     data: {
       draft_group_results: row.draft_group_results ?? {},
       draft_match_results: row.draft_match_results ?? {},
+      draft_third_place_qualifiers: row.draft_third_place_qualifiers ?? [],
       published_group_results: row.published_group_results ?? {},
       published_match_results: row.published_match_results ?? {},
+      published_third_place_qualifiers: row.published_third_place_qualifiers ?? [],
       published_at: row.published_at ?? null,
       draft_updated_at: row.draft_updated_at ?? null,
     },

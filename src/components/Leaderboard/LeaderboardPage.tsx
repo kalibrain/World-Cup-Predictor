@@ -286,8 +286,8 @@ export function LeaderboardPage() {
                     <th>Bracket</th>
                     <th>Top scorer</th>
                     <th>Total goals</th>
-                    <th>Group pts</th>
-                    <th>Knockout pts</th>
+                    <th>R32 pts</th>
+                    <th>Later pts</th>
                     <th>Total</th>
                     <th>View</th>
                   </tr>
@@ -341,7 +341,7 @@ export function LeaderboardPage() {
                     </div>
                     <div className="leaderboard-card-meta">
                       <span>{row.bracket_name ?? '—'}</span>
-                      <span>Group {row.group_points} · Knockout {row.knockout_points}</span>
+                      <span>R32 {row.group_points} · Later {row.knockout_points}</span>
                     </div>
                     <div className="leaderboard-card-meta">
                       <span>{row.predicted_top_scorer || 'Top scorer —'}</span>
