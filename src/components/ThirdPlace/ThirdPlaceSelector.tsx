@@ -4,7 +4,7 @@ import { assignThirdPlaceTeams } from '../../utils/thirdPlaceAssignment';
 import { FlagIcon } from '../FlagIcon';
 
 export function ThirdPlaceSelector() {
-  const { state, toggleThirdPlace, confirmThirdPlace, goBackToGroups, isReadOnly } = useApp();
+  const { state, toggleThirdPlace, confirmThirdPlace, goBackToGroups, isLocked, isReadOnly } = useApp();
 
   const selectedCount = state.selectedThirdPlace.length;
   const canProceed = selectedCount === 8;
@@ -17,8 +17,14 @@ export function ThirdPlaceSelector() {
       <div className="stage-header">
         <h2 className="stage-title">Third Place Teams</h2>
         <p className="stage-desc">
-          Select exactly <strong>8</strong> third-place teams to qualify for the Round of 32.
-          These are the teams that finished 3rd in their respective groups.
+          {isLocked ? (
+            'Tournament has started. No more changes are allowed. Have fun!'
+          ) : (
+            <>
+              Select exactly <strong>8</strong> third-place teams to qualify for the Round of 32.
+              These are the teams that finished 3rd in their respective groups.
+            </>
+          )}
         </p>
         <div className={`selection-counter ${selectedCount === 8 ? 'complete' : ''}`}>
           <span className="counter-num">{selectedCount}</span>

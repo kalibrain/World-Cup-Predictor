@@ -58,6 +58,9 @@ export function BracketView(props: BracketViewProps = {}) {
   const showFooter = props.showFooter ?? !readOnly;
   const onBack = props.onBack ?? (() => app?.goToStep('third-place'));
   const isUserBracket = !props.matches && app !== null;
+  const stageDescription = isUserBracket && app?.isLocked
+    ? 'Tournament has started. No more changes are allowed. Have fun!'
+    : 'Click a team in each match to pick the winner. Work left to right, Round of 32 through to the Final.';
 
   const finalMatch = matches['FINAL'];
   const tpoMatch = matches['3PO'];
@@ -72,9 +75,7 @@ export function BracketView(props: BracketViewProps = {}) {
     <div className="bracket-screen">
       <div className="stage-header">
         <h2 className="stage-title">Knockout Bracket</h2>
-        <p className="stage-desc">
-          Click a team in each match to pick the winner. Work left to right, Round of 32 through to the Final.
-        </p>
+        <p className="stage-desc">{stageDescription}</p>
         {championTeam && (
           <div className="champion-row">
             <div className="champion-banner">
@@ -166,4 +167,3 @@ export function BracketView(props: BracketViewProps = {}) {
     </div>
   );
 }
-
