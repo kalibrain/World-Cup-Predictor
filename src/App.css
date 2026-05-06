@@ -1281,6 +1281,32 @@ html, body {
   line-height: 1.2;
 }
 
+.slot-score-badges {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
+}
+
+.slot-score-badge {
+  min-width: 20px;
+  padding: 2px 4px;
+  border-radius: 999px;
+  background: rgba(20, 184, 166, 0.2);
+  border: 1px solid rgba(20, 184, 166, 0.45);
+  color: var(--win);
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1;
+  text-align: center;
+}
+
+.slot-score-badge-missed {
+  background: rgba(148, 163, 184, 0.1);
+  border-color: rgba(148, 163, 184, 0.25);
+  color: var(--text-secondary);
+}
+
 .slot-tbd {
   font-size: 11px;
   color: var(--text-muted-soft);
@@ -1289,7 +1315,7 @@ html, body {
 
 .champion-trophy {
   font-size: 14px;
-  margin-left: auto;
+  flex-shrink: 0;
 }
 
 .bracket-tiebreakers {

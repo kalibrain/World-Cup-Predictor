@@ -29,6 +29,17 @@ export interface Match {
   winnerId: string | null;
 }
 
+export interface SelectionScoreBreakdown {
+  match_id: string;
+  slot: 'slot1' | 'slot2' | 'winner';
+  selection_type: 'slot' | 'winner';
+  round_key: 'R32' | 'R16' | 'QF' | 'SF' | 'FINAL' | 'CHAMPION';
+  label: string;
+  team_id: string;
+  points: number;
+  awarded: boolean;
+}
+
 export interface BracketState {
   matches: Record<string, Match>;
   thirdPlaceAssignment: Record<string, string>; // matchId -> teamId

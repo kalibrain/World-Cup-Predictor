@@ -190,6 +190,7 @@ function LeaderboardBracketDrawer({
                 matches={matches}
                 totalGoals={bracket.knockout.total_goals ?? null}
                 topScorer={bracket.knockout.top_scorer ?? ''}
+                scoringBreakdown={bracket.knockout.scoring_breakdown ?? []}
                 readOnly
                 showFooter={false}
               />

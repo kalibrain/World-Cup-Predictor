@@ -3,7 +3,7 @@ import { BracketMatch } from './BracketMatch';
 import { BracketPrintView } from './BracketPrintView';
 import { TEAM_MAP } from '../../data/teams';
 import { FlagIcon } from '../FlagIcon';
-import type { Match } from '../../types';
+import type { Match, SelectionScoreBreakdown } from '../../types';
 
 interface RoundColumnProps {
   title: string;
@@ -12,9 +12,10 @@ interface RoundColumnProps {
   showDate?: boolean;
   onPickWinner?: (matchId: string, winnerId: string) => void;
   readOnly?: boolean;
+  scoreBreakdownByMatch?: Record<string, SelectionScoreBreakdown[]>;
 }
 
-function RoundColumn({ title, matchIds, matches, showDate, onPickWinner, readOnly }: RoundColumnProps) {
+function RoundColumn({ title, matchIds, matches, showDate, onPickWinner, readOnly, scoreBreakdownByMatch }: RoundColumnProps) {
   return (
     <div className="bracket-round-col">
       <div className="round-title">{title}</div>
@@ -26,6 +27,7 @@ function RoundColumn({ title, matchIds, matches, showDate, onPickWinner, readOnl
               showDate={showDate}
               onPickWinner={onPickWinner}
               readOnly={readOnly}
+              scoreBreakdown={scoreBreakdownByMatch?.[id]}
             />
           </div>
         ))}
@@ -42,6 +44,7 @@ interface BracketViewProps {
   onPickWinner?: (matchId: string, winnerId: string) => void;
   onTotalGoalsChange?: (value: number | null) => void;
   onTopScorerChange?: (value: string) => void;
+  scoringBreakdown?: SelectionScoreBreakdown[];
   showFooter?: boolean;
   onBack?: () => void;
 }
@@ -57,6 +60,10 @@ export function BracketView(props: BracketViewProps = {}) {
   const onTopScorer = props.onTopScorerChange ?? app?.setTopScorer ?? (() => {});
   const showFooter = props.showFooter ?? !readOnly;
   const onBack = props.onBack ?? (() => app?.goToStep('third-place'));
+  const scoreBreakdownByMatch = props.scoringBreakdown?.reduce<Record<string, SelectionScoreBreakdown[]>>((acc, score) => {
+    (acc[score.match_id] ??= []).push(score);
+    return acc;
+  }, {});
   const isUserBracket = !props.matches && app !== null;
   const stageDescription = isUserBracket && app?.isLocked
     ? 'Tournament has started. No more changes are allowed. Have fun!'
@@ -98,27 +105,27 @@ export function BracketView(props: BracketViewProps = {}) {
 
       <div className="bracket-scroll-container">
         <div className="bracket-mirror">
-          <RoundColumn title="Round of 32" matchIds={['M1','M2','M3','M4','M5','M6','M7','M8']} matches={matches} showDate onPickWinner={onPickWinner} readOnly={readOnly} />
-          <RoundColumn title="Round of 16" matchIds={['R16_1','R16_2','R16_3','R16_4']} matches={matches} onPickWinner={onPickWinner} readOnly={readOnly} />
-          <RoundColumn title="Quarterfinals" matchIds={['QF1','QF2']} matches={matches} onPickWinner={onPickWinner} readOnly={readOnly} />
-          <RoundColumn title="Semifinal" matchIds={['SF1']} matches={matches} onPickWinner={onPickWinner} readOnly={readOnly} />
+          <RoundColumn title="Round of 32" matchIds={['M1','M2','M3','M4','M5','M6','M7','M8']} matches={matches} showDate onPickWinner={onPickWinner} readOnly={readOnly} scoreBreakdownByMatch={scoreBreakdownByMatch} />
+          <RoundColumn title="Round of 16" matchIds={['R16_1','R16_2','R16_3','R16_4']} matches={matches} onPickWinner={onPickWinner} readOnly={readOnly} scoreBreakdownByMatch={scoreBreakdownByMatch} />
+          <RoundColumn title="Quarterfinals" matchIds={['QF1','QF2']} matches={matches} onPickWinner={onPickWinner} readOnly={readOnly} scoreBreakdownByMatch={scoreBreakdownByMatch} />
+          <RoundColumn title="Semifinal" matchIds={['SF1']} matches={matches} onPickWinner={onPickWinner} readOnly={readOnly} scoreBreakdownByMatch={scoreBreakdownByMatch} />
 
           <div className="bracket-round-col bracket-center-col">
             <div className="round-title">Final &amp; 3rd Place</div>
             <div className="round-matches final-col-matches">
               <div className="match-wrapper">
-                <BracketMatch match={finalMatch} isFinal onPickWinner={onPickWinner} readOnly={readOnly} />
+                <BracketMatch match={finalMatch} isFinal onPickWinner={onPickWinner} readOnly={readOnly} scoreBreakdown={scoreBreakdownByMatch?.FINAL} />
               </div>
               <div className="match-wrapper">
-                <BracketMatch match={tpoMatch} is3PO onPickWinner={onPickWinner} readOnly={readOnly} />
+                <BracketMatch match={tpoMatch} is3PO onPickWinner={onPickWinner} readOnly={readOnly} scoreBreakdown={scoreBreakdownByMatch?.['3PO']} />
               </div>
             </div>
           </div>
 
-          <RoundColumn title="Semifinal" matchIds={['SF2']} matches={matches} onPickWinner={onPickWinner} readOnly={readOnly} />
-          <RoundColumn title="Quarterfinals" matchIds={['QF3','QF4']} matches={matches} onPickWinner={onPickWinner} readOnly={readOnly} />
-          <RoundColumn title="Round of 16" matchIds={['R16_5','R16_6','R16_7','R16_8']} matches={matches} onPickWinner={onPickWinner} readOnly={readOnly} />
-          <RoundColumn title="Round of 32" matchIds={['M9','M10','M11','M12','M13','M14','M15','M16']} matches={matches} showDate onPickWinner={onPickWinner} readOnly={readOnly} />
+          <RoundColumn title="Semifinal" matchIds={['SF2']} matches={matches} onPickWinner={onPickWinner} readOnly={readOnly} scoreBreakdownByMatch={scoreBreakdownByMatch} />
+          <RoundColumn title="Quarterfinals" matchIds={['QF3','QF4']} matches={matches} onPickWinner={onPickWinner} readOnly={readOnly} scoreBreakdownByMatch={scoreBreakdownByMatch} />
+          <RoundColumn title="Round of 16" matchIds={['R16_5','R16_6','R16_7','R16_8']} matches={matches} onPickWinner={onPickWinner} readOnly={readOnly} scoreBreakdownByMatch={scoreBreakdownByMatch} />
+          <RoundColumn title="Round of 32" matchIds={['M9','M10','M11','M12','M13','M14','M15','M16']} matches={matches} showDate onPickWinner={onPickWinner} readOnly={readOnly} scoreBreakdownByMatch={scoreBreakdownByMatch} />
         </div>
       </div>
 

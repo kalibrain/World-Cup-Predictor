@@ -1,7 +1,7 @@
 import type { User } from '@supabase/supabase-js';
 import { createInitialGroups } from '../data/teams';
 import { createInitialMatches } from '../data/bracket';
-import type { AppState, AppStep, Match } from '../types';
+import type { AppState, AppStep, Match, SelectionScoreBreakdown } from '../types';
 import { supabase } from './supabase';
 
 export type TournamentVisibility = 'public' | 'private';
@@ -436,6 +436,7 @@ export interface AdminBracketRow {
     matches?: Record<string, Match>;
     total_goals?: number | null;
     top_scorer?: string;
+    scoring_breakdown?: SelectionScoreBreakdown[];
   };
 }
 
