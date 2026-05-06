@@ -13,6 +13,7 @@ import { AdminShell } from './components/Admin/AdminShell';
 import { RequireAdmin } from './components/Admin/RequireAdmin';
 import { LeaderboardPage } from './components/Leaderboard/LeaderboardPage';
 import { FAQPage } from './components/FAQPage';
+import { PrivacyPolicyPage, TermsOfServicePage } from './components/LegalPage';
 import './App.css';
 
 function PredictorShell() {
@@ -62,6 +63,8 @@ function Shell() {
         />
         <Route path="/leaderboard" element={<LeaderboardPage />} />
         <Route path="/faq" element={<FAQPage />} />
+        <Route path="/privacy" element={<PrivacyPolicyPage />} />
+        <Route path="/terms" element={<TermsOfServicePage />} />
         <Route path="/*" element={<PredictorShell />} />
       </Routes>
       <SaveStatus />

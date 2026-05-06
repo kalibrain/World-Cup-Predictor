@@ -2376,6 +2376,15 @@ html, body {
   margin: 0;
 }
 
+.legal-section .faq-copy + .faq-copy {
+  margin-top: 12px;
+}
+
+.legal-section a {
+  color: var(--accent);
+  font-weight: 650;
+}
+
 @media (max-width: 720px) {
   .leaderboard-header {
     flex-direction: column;
