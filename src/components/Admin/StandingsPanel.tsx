@@ -10,7 +10,9 @@ import {
   type StandingsEditorPayload,
   type TournamentResults,
 } from '../../lib/persistence';
-import { ALL_TEAMS, createInitialGroups, TEAM_MAP } from '../../data/teams';
+import { BRACKET_FEED } from '../../data/bracket';
+import { createInitialGroups, TEAM_MAP } from '../../data/teams';
+import { assignThirdPlaceTeams } from '../../utils/thirdPlaceAssignment';
 import { GroupCard } from '../Groups/GroupCard';
 import { FlagIcon } from '../FlagIcon';
 import type { Group } from '../../types';
@@ -25,6 +27,92 @@ const KNOCKOUT_ROUNDS: Array<{ title: string; ids: string[] }> = [
 ];
 
 const GROUP_IDS = ['A','B','C','D','E','F','G','H','I','J','K','L'];
+
+type KnockoutWinnerOption = {
+  teamId: string;
+  source: string;
+};
+
+type GroupRankSeed = {
+  kind: 'group-rank';
+  groupId: string;
+  rank: number;
+  source: string;
+};
+
+type ThirdPlaceSeed = {
+  kind: 'third-place';
+  matchId: string;
+};
+
+type R32Seed = GroupRankSeed | ThirdPlaceSeed;
+
+const R32_SEEDS: Record<string, [R32Seed, R32Seed]> = {
+  M1: [
+    { kind: 'group-rank', groupId: 'E', rank: 0, source: 'Winner Group E' },
+    { kind: 'third-place', matchId: 'M1' },
+  ],
+  M2: [
+    { kind: 'group-rank', groupId: 'I', rank: 0, source: 'Winner Group I' },
+    { kind: 'third-place', matchId: 'M2' },
+  ],
+  M3: [
+    { kind: 'group-rank', groupId: 'A', rank: 1, source: 'Runner-up Group A' },
+    { kind: 'group-rank', groupId: 'B', rank: 1, source: 'Runner-up Group B' },
+  ],
+  M4: [
+    { kind: 'group-rank', groupId: 'F', rank: 0, source: 'Winner Group F' },
+    { kind: 'group-rank', groupId: 'C', rank: 1, source: 'Runner-up Group C' },
+  ],
+  M5: [
+    { kind: 'group-rank', groupId: 'K', rank: 1, source: 'Runner-up Group K' },
+    { kind: 'group-rank', groupId: 'L', rank: 1, source: 'Runner-up Group L' },
+  ],
+  M6: [
+    { kind: 'group-rank', groupId: 'H', rank: 0, source: 'Winner Group H' },
+    { kind: 'group-rank', groupId: 'J', rank: 1, source: 'Runner-up Group J' },
+  ],
+  M7: [
+    { kind: 'group-rank', groupId: 'D', rank: 0, source: 'Winner Group D' },
+    { kind: 'third-place', matchId: 'M7' },
+  ],
+  M8: [
+    { kind: 'group-rank', groupId: 'G', rank: 0, source: 'Winner Group G' },
+    { kind: 'third-place', matchId: 'M8' },
+  ],
+  M9: [
+    { kind: 'group-rank', groupId: 'C', rank: 0, source: 'Winner Group C' },
+    { kind: 'group-rank', groupId: 'F', rank: 1, source: 'Runner-up Group F' },
+  ],
+  M10: [
+    { kind: 'group-rank', groupId: 'E', rank: 1, source: 'Runner-up Group E' },
+    { kind: 'group-rank', groupId: 'I', rank: 1, source: 'Runner-up Group I' },
+  ],
+  M11: [
+    { kind: 'group-rank', groupId: 'A', rank: 0, source: 'Winner Group A' },
+    { kind: 'third-place', matchId: 'M11' },
+  ],
+  M12: [
+    { kind: 'group-rank', groupId: 'L', rank: 0, source: 'Winner Group L' },
+    { kind: 'third-place', matchId: 'M12' },
+  ],
+  M13: [
+    { kind: 'group-rank', groupId: 'J', rank: 0, source: 'Winner Group J' },
+    { kind: 'group-rank', groupId: 'H', rank: 1, source: 'Runner-up Group H' },
+  ],
+  M14: [
+    { kind: 'group-rank', groupId: 'D', rank: 1, source: 'Runner-up Group D' },
+    { kind: 'group-rank', groupId: 'G', rank: 1, source: 'Runner-up Group G' },
+  ],
+  M15: [
+    { kind: 'group-rank', groupId: 'B', rank: 0, source: 'Winner Group B' },
+    { kind: 'third-place', matchId: 'M15' },
+  ],
+  M16: [
+    { kind: 'group-rank', groupId: 'K', rank: 0, source: 'Winner Group K' },
+    { kind: 'third-place', matchId: 'M16' },
+  ],
+};
 
 const dateTimeFormatter = new Intl.DateTimeFormat(undefined, {
   month: 'short',
@@ -61,6 +149,76 @@ function stringArraysEqual(a: string[], b: string[]): boolean {
     if (a[i] !== b[i]) return false;
   }
   return true;
+}
+
+function uniqueOptions(options: Array<KnockoutWinnerOption | null>): KnockoutWinnerOption[] {
+  const seen = new Set<string>();
+  const unique: KnockoutWinnerOption[] = [];
+
+  for (const option of options) {
+    if (!option || seen.has(option.teamId)) continue;
+    seen.add(option.teamId);
+    unique.push(option);
+  }
+
+  return unique;
+}
+
+function completeMatchOptions(options: Array<KnockoutWinnerOption | null>): KnockoutWinnerOption[] {
+  const unique = uniqueOptions(options);
+  return unique.length === 2 ? unique : [];
+}
+
+function buildKnockoutWinnerOptions(
+  groups: Group[],
+  thirdPlaceQualifiers: string[],
+  winners: Record<string, string | null>,
+): Record<string, KnockoutWinnerOption[]> {
+  const groupsById = Object.fromEntries(groups.map(group => [group.id, group]));
+  const thirdPlaceAssignment = assignThirdPlaceTeams(thirdPlaceQualifiers) ?? {};
+  const options: Record<string, KnockoutWinnerOption[]> = {};
+
+  const resolveSeed = (seed: R32Seed): KnockoutWinnerOption | null => {
+    if (seed.kind === 'group-rank') {
+      const teamId = groupsById[seed.groupId]?.rankings[seed.rank] ?? null;
+      return teamId ? { teamId, source: seed.source } : null;
+    }
+
+    const groupId = thirdPlaceAssignment[seed.matchId];
+    const teamId = groupId ? groupsById[groupId]?.rankings[2] ?? null : null;
+    return teamId && groupId ? { teamId, source: `3rd Group ${groupId}` } : null;
+  };
+
+  const validWinnerOption = (matchId: string): KnockoutWinnerOption | null => {
+    const winnerId = winners[matchId] ?? null;
+    if (!winnerId) return null;
+    return options[matchId]?.find(option => option.teamId === winnerId) ?? null;
+  };
+
+  for (const [matchId, seeds] of Object.entries(R32_SEEDS)) {
+    options[matchId] = completeMatchOptions(seeds.map(seed => resolveSeed(seed)));
+  }
+
+  for (const [matchId, [feed1, feed2]] of Object.entries(BRACKET_FEED)) {
+    options[matchId] = completeMatchOptions([
+      validWinnerOption(feed1),
+      validWinnerOption(feed2),
+    ]);
+  }
+
+  const semifinalLoser = (matchId: string): KnockoutWinnerOption | null => {
+    const winner = validWinnerOption(matchId);
+    if (!winner) return null;
+    const loser = options[matchId]?.find(option => option.teamId !== winner.teamId) ?? null;
+    return loser ? { ...loser, source: `Loser ${matchId}` } : null;
+  };
+
+  options['3PO'] = completeMatchOptions([
+    semifinalLoser('SF1'),
+    semifinalLoser('SF2'),
+  ]);
+
+  return options;
 }
 
 export function StandingsPanel({ editionId }: { editionId: string }) {
@@ -135,6 +293,9 @@ export function StandingsPanel({ editionId }: { editionId: string }) {
   const groups = useMemo(() => {
     return GROUP_IDS.map(id => buildGroupFromRankings(id, localGroups[id]));
   }, [localGroups]);
+  const knockoutWinnerOptions = useMemo(() => (
+    buildKnockoutWinnerOptions(groups, localThirdPlaceQualifiers, localMatches)
+  ), [groups, localMatches, localThirdPlaceQualifiers]);
 
   const handleGroupChange = (groupId: string, rankings: string[]) => {
     setLocalGroups(prev => ({ ...prev, [groupId]: rankings }));
@@ -290,6 +451,7 @@ export function StandingsPanel({ editionId }: { editionId: string }) {
                     key={id}
                     matchId={id}
                     winnerId={localMatches[id] ?? null}
+                    options={knockoutWinnerOptions[id] ?? []}
                     edited={dirtyMatchIds.has(id)}
                     onChange={value => handleMatchWinner(id, value)}
                   />
@@ -384,11 +546,12 @@ function ThirdPlaceQualifierPicker({ groups, selected, dirty, onToggle }: ThirdP
 interface KnockoutRowProps {
   matchId: string;
   winnerId: string | null;
+  options: KnockoutWinnerOption[];
   edited: boolean;
   onChange: (winnerId: string | null) => void;
 }
 
-function KnockoutMatchRow({ matchId, winnerId, edited, onChange }: KnockoutRowProps) {
+function KnockoutMatchRow({ matchId, winnerId, options, edited, onChange }: KnockoutRowProps) {
   const team = winnerId ? TEAM_MAP[winnerId] : null;
 
   return (
@@ -400,8 +563,10 @@ function KnockoutMatchRow({ matchId, winnerId, edited, onChange }: KnockoutRowPr
         onChange={e => onChange(e.target.value || null)}
       >
         <option value="">— No winner yet —</option>
-        {ALL_TEAMS.map(t => (
-          <option key={t.id} value={t.id}>{t.name}</option>
+        {options.map(option => (
+          <option key={option.teamId} value={option.teamId}>
+            {TEAM_MAP[option.teamId]?.name ?? option.teamId} ({option.source})
+          </option>
         ))}
       </select>
       <div className="admin-knockout-flag">
