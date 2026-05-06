@@ -45,6 +45,11 @@ export function Header() {
     closeMenu();
     void signOut();
   };
+  const handleLogoClick = () => {
+    closeMenu();
+    resetApp();
+    navigate('/');
+  };
   const handleSwitchTournament = () => {
     closeMenu();
     clearTournamentSelection();
@@ -69,7 +74,7 @@ export function Header() {
       <div className="header-inner">
         <div
           className="header-logo"
-          onClick={resetApp}
+          onClick={handleLogoClick}
           style={{ cursor: 'pointer' }}
         >
           <div className="header-badge">

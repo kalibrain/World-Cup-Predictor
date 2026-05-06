@@ -20,7 +20,7 @@ export const ALL_TEAMS: Team[] = [
   { id: 'usa', name: 'United States', flag: '🇺🇸', countryCode: 'us', group: 'D' },
   { id: 'paraguay', name: 'Paraguay', flag: '🇵🇾', countryCode: 'py', group: 'D' },
   { id: 'australia', name: 'Australia', flag: '🇦🇺', countryCode: 'au', group: 'D' },
-  { id: 'turkey', name: 'Turkey', flag: '🇹🇷', countryCode: 'tr', group: 'D' },
+  { id: 'turkey', name: 'Turkiye', flag: '🇹🇷', countryCode: 'tr', group: 'D' },
   // Group E
   { id: 'germany', name: 'Germany', flag: '🇩🇪', countryCode: 'de', group: 'E' },
   { id: 'curacao', name: 'Curaçao', flag: '🇨🇼', countryCode: 'cw', group: 'E' },

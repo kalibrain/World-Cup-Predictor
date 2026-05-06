@@ -74,9 +74,7 @@ export function BracketView(props: BracketViewProps = {}) {
   const champion = finalMatch?.winnerId;
   const championTeam = champion ? TEAM_MAP[champion] : null;
   const bracketComplete = isUserBracket
-    && Object.values(matches).every(m => Boolean(m.winnerId))
-    && totalGoals != null
-    && topScorer.trim().length > 0;
+    && Object.values(matches).every(m => Boolean(m.winnerId));
 
   return (
     <div className="bracket-screen">
@@ -94,7 +92,7 @@ export function BracketView(props: BracketViewProps = {}) {
                 className="btn btn-gold pdf-download-btn"
                 onClick={() => window.print()}
                 disabled={!bracketComplete}
-                title={bracketComplete ? 'Download your bracket as a PDF' : 'Pick every match and fill in total goals + top scorer to enable PDF download'}
+                title={bracketComplete ? 'Download your bracket as a PDF' : 'Pick every match to enable PDF download'}
               >
                 ⬇ Download PDF
               </button>

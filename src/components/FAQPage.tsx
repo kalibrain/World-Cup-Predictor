@@ -28,7 +28,7 @@ const faqItems = [
   },
   {
     question: 'What are the tie-breaker picks?',
-    answer: 'Enter your predicted total number of tournament goals and your predicted top scorer. The total-goals guess is used only as a tie-breaker, not as bonus scoring.',
+    answer: 'Optionally enter your predicted total number of tournament goals and your predicted top scorer. The total-goals guess is used only as a tie-breaker, not as bonus scoring.',
   },
   {
     question: 'When are picks locked?',
@@ -48,7 +48,7 @@ const faqItems = [
   },
   {
     question: 'Can I save or share my bracket?',
-    answer: 'Once every match, total goals, and top scorer are filled in, you can download a PDF copy of your bracket from the knockout screen.',
+    answer: 'Once every knockout match is filled in, you can download a PDF copy of your bracket from the knockout screen. Tie-breaker picks are optional.',
   },
 ];
 
