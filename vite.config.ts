@@ -15,7 +15,7 @@ const spaFallback = {
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: process.env.GITHUB_ACTIONS ? '/World-Cup-Predictor/' : '/',
+  base: '/',
   plugins: [react(), spaFallback],
   server: {
     host: true,
