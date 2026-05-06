@@ -46,7 +46,7 @@ export function TournamentDrilldown() {
             <div>
               <h1 className="admin-title">{tournament.tournament_name}</h1>
               <p className="admin-subtitle">
-                {tournament.visibility} · {tournament.status} · {tournament.member_count} members · {tournament.bracket_count} brackets
+                {tournament.visibility} · {tournament.status} · {tournament.member_count} members · {tournament.bracket_count} brackets · max {tournament.max_brackets_per_user} per user
               </p>
               <p className="admin-subtitle">
                 Edition: <Link to={`/admin/editions/${tournament.edition_id}/standings`}>{tournament.edition_name}</Link>

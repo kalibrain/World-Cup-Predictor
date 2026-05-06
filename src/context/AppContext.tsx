@@ -15,13 +15,13 @@ import { createInitialMatches, BRACKET_FEED } from '../data/bracket';
 import { assignThirdPlaceTeams } from '../utils/thirdPlaceAssignment';
 import { useAuth } from './AuthContext';
 import {
-  fetchBracketForTournament,
+  createTournamentBracket,
+  fetchBracketById,
   getUserTournamentContexts,
   joinPrivateTournamentByName,
   joinPublicTournament,
   saveBracketSnapshot,
   type TournamentContext,
-  upsertBracketShell,
   upsertProfile,
 } from '../lib/persistence';
 
@@ -62,6 +62,7 @@ interface AppContextValue {
   refreshTournaments: () => Promise<void>;
   selectTournament: (tournamentId: string) => Promise<string | null>;
   selectPrivateTournament: (tournamentName: string) => Promise<string | null>;
+  openBracket: (nextBracketId: string) => Promise<string | null>;
   clearTournamentSelection: () => void;
   setBracketName: (name: string) => void;
   setTotalGoals: (value: number | null) => void;
@@ -101,7 +102,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }
   const lastSavedRef = useRef<{ bracketId: string; keys: SavedSnapshotKeys } | null>(null);
 
-  const computeSnapshotKeys = (snapshot: AppState): SavedSnapshotKeys => ({
+  const computeSnapshotKeys = useCallback((snapshot: AppState): SavedSnapshotKeys => ({
     groupKeys: Object.fromEntries(
       Object.values(snapshot.groups).map(g => [g.id, JSON.stringify(g.rankings)]),
     ),
@@ -117,7 +118,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       step: snapshot.step,
       furthestStep: snapshot.furthestStep,
     }),
-  });
+  }), []);
 
   const isLocked = Boolean(selectedTournament?.is_locked);
   const isReadOnly = isLocked;
@@ -144,14 +145,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
     );
   }, [user]);
 
-  const loadTournamentBracket = useCallback(async (tournament: TournamentContext): Promise<string | null> => {
+  const openBracket = useCallback(async (nextBracketId: string): Promise<string | null> => {
     if (!user) return 'You need to sign in first.';
 
     setTournamentError(null);
     setPersistError(null);
     setIsLoadingTournaments(true);
 
-    const { data, error } = await fetchBracketForTournament(tournament.tournament_id, user.id);
+    const { data, error } = await fetchBracketById(nextBracketId, user.id);
 
     setIsLoadingTournaments(false);
 
@@ -160,20 +161,36 @@ export function AppProvider({ children }: { children: ReactNode }) {
       return error;
     }
 
-    setSelectedTournament(tournament);
-
     if (!data) {
-      setBracketId(null);
-      lastSavedRef.current = null;
-      setState(buildInitialState());
-      return null;
+      const message = 'Bracket not found.';
+      setTournamentError(message);
+      return message;
     }
 
     setBracketId(data.id);
     lastSavedRef.current = { bracketId: data.id, keys: computeSnapshotKeys(data.state) };
     setState(data.state);
     return null;
-  }, [user]);
+  }, [computeSnapshotKeys, user]);
+
+  const selectTournamentContext = useCallback(async (tournament: TournamentContext): Promise<string | null> => {
+    const onlyExistingBracket = tournament.brackets[0];
+    if (tournament.max_brackets_per_user === 1 && tournament.user_bracket_count === 1 && onlyExistingBracket) {
+      const error = await openBracket(onlyExistingBracket.id);
+      if (error) return error;
+      setSelectedTournament(tournament);
+      return null;
+    }
+
+    setSelectedTournament(tournament);
+    setPersistError(null);
+    setTournamentError(null);
+    setBracketId(null);
+    lastSavedRef.current = null;
+    setState(buildInitialState());
+
+    return null;
+  }, [openBracket]);
 
   const selectTournament = useCallback(async (tournamentId: string): Promise<string | null> => {
     if (!user) return 'You need to sign in first.';
@@ -209,8 +226,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       return message;
     }
 
-    return loadTournamentBracket(selected);
-  }, [loadTournamentBracket, tournaments, user]);
+    return selectTournamentContext(selected);
+  }, [selectTournamentContext, tournaments, user]);
 
   const selectPrivateTournament = useCallback(async (tournamentName: string): Promise<string | null> => {
     if (!user) return 'You need to sign in first.';
@@ -247,8 +264,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       return message;
     }
 
-    return loadTournamentBracket(selected);
-  }, [loadTournamentBracket, user]);
+    return selectTournamentContext(selected);
+  }, [selectTournamentContext, user]);
 
   useEffect(() => {
     if (!user) {
@@ -287,10 +304,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const trimmedName = name.trim();
     if (!trimmedName) return 'Bracket name is required.';
 
-    const { bracketId: nextBracketId, error } = await upsertBracketShell({
-      bracketId,
+    if (selectedTournament.user_bracket_count >= selectedTournament.max_brackets_per_user) {
+      return 'Bracket limit reached for this tournament.';
+    }
+
+    const { bracketId: nextBracketId, error } = await createTournamentBracket({
       tournamentId: selectedTournament.tournament_id,
-      userId: user.id,
       name: trimmedName,
     });
 
@@ -302,17 +321,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     setPersistError(null);
     setBracketId(nextBracketId);
+    lastSavedRef.current = null;
 
-    setState(prev => ({
-      ...prev,
+    setState({
+      ...buildInitialState(),
       bracketName: trimmedName,
       step: 'groups',
-      furthestStep: stepIndex('groups') > stepIndex(prev.furthestStep) ? 'groups' : prev.furthestStep,
-    }));
+      furthestStep: 'groups',
+    });
 
     void refreshTournaments();
     return null;
-  }, [bracketId, refreshTournaments, selectedTournament, user]);
+  }, [refreshTournaments, selectedTournament, user]);
 
   const updateGroupRankings = useCallback((groupId: string, rankings: string[]) => {
     if (isReadOnly) return;
@@ -702,6 +722,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     };
   }, [
     bracketId,
+    computeSnapshotKeys,
     selectedTournament,
     state,
     user,
@@ -720,6 +741,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     refreshTournaments,
     selectTournament,
     selectPrivateTournament,
+    openBracket,
     clearTournamentSelection,
     setBracketName,
     setTotalGoals,
@@ -748,6 +770,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     refreshTournaments,
     selectTournament,
     selectPrivateTournament,
+    openBracket,
     clearTournamentSelection,
     setBracketName,
     setTotalGoals,

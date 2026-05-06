@@ -23,6 +23,7 @@ export function SettingsPanel({ tournament, onChanged }: Props) {
   const [status, setStatus] = useState<TournamentStatus>(tournament.status);
   const [startsAt, setStartsAt] = useState(toLocalInputValue(tournament.starts_at));
   const [locksAt, setLocksAt] = useState(toLocalInputValue(tournament.locks_at));
+  const [maxBrackets, setMaxBrackets] = useState(String(tournament.max_brackets_per_user));
   const [saving, setSaving] = useState(false);
   const [archiving, setArchiving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -39,6 +40,11 @@ export function SettingsPanel({ tournament, onChanged }: Props) {
       setError('Lock date is required.');
       return;
     }
+    const maxBracketCount = Number.parseInt(maxBrackets, 10);
+    if (!Number.isInteger(maxBracketCount) || maxBracketCount < 1) {
+      setError('Bracket limit must be at least 1.');
+      return;
+    }
     setSaving(true);
     const { error: rpcError } = await adminUpsertTournament({
       id: tournament.tournament_id,
@@ -48,6 +54,7 @@ export function SettingsPanel({ tournament, onChanged }: Props) {
       starts_at: fromLocalInputValue(startsAt),
       locks_at: locksIso,
       edition_id: tournament.edition_id,
+      max_brackets_per_user: maxBracketCount,
     });
     setSaving(false);
     if (rpcError) {
@@ -122,6 +129,16 @@ export function SettingsPanel({ tournament, onChanged }: Props) {
             onChange={e => setLocksAt(e.target.value)}
           />
         </div>
+      </div>
+      <div className="admin-form-row">
+        <label className="form-label">Brackets per user</label>
+        <input
+          type="number"
+          min={1}
+          className="form-input"
+          value={maxBrackets}
+          onChange={e => setMaxBrackets(e.target.value)}
+        />
       </div>
       {error && <div className="admin-error">{error}</div>}
       <div className="admin-form-actions">

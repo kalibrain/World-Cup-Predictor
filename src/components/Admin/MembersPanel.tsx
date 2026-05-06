@@ -18,7 +18,7 @@ export function MembersPanel({ tournamentId }: { tournamentId: string }) {
   const [members, setMembers] = useState<TournamentMemberRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [actionUserId, setActionUserId] = useState<string | null>(null);
+  const [actionKey, setActionKey] = useState<string | null>(null);
   const [viewBracket, setViewBracket] = useState<TournamentMemberRow | null>(null);
 
   const refresh = useCallback(async () => {
@@ -41,9 +41,9 @@ export function MembersPanel({ tournamentId }: { tournamentId: string }) {
     if (!confirm(`Revoke access for ${member.email ?? member.user_id}? Their bracket will remain unless you also delete it.`)) {
       return;
     }
-    setActionUserId(member.user_id);
+    setActionKey(member.user_id);
     const error = await adminRevokeMembership(tournamentId, member.user_id);
-    setActionUserId(null);
+    setActionKey(null);
     if (error) {
       setError(error);
       return;
@@ -56,9 +56,9 @@ export function MembersPanel({ tournamentId }: { tournamentId: string }) {
     if (!confirm(`Delete ${member.bracket_name ?? 'bracket'} for ${member.email ?? member.user_id}? This cannot be undone.`)) {
       return;
     }
-    setActionUserId(member.user_id);
+    setActionKey(member.bracket_id);
     const error = await adminDeleteBracket(member.bracket_id);
-    setActionUserId(null);
+    setActionKey(null);
     if (error) {
       setError(error);
       return;
@@ -92,9 +92,9 @@ export function MembersPanel({ tournamentId }: { tournamentId: string }) {
                 </tr>
               )}
               {members.map(m => {
-                const busy = actionUserId === m.user_id;
+                const busy = actionKey === m.user_id || actionKey === m.bracket_id;
                 return (
-                  <tr key={m.user_id}>
+                  <tr key={`${m.user_id}-${m.bracket_id ?? 'no-bracket'}`}>
                     <td>
                       <div>{m.display_name ?? m.email ?? m.user_id}</div>
                       {m.email && m.display_name && (

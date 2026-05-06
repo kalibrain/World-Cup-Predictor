@@ -7,6 +7,15 @@ import { supabase } from './supabase';
 export type TournamentVisibility = 'public' | 'private';
 export type MembershipRole = 'admin' | 'participant' | null;
 
+export interface TournamentBracketSummary {
+  id: string;
+  name: string;
+  current_step: AppStep;
+  furthest_step: AppStep;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface TournamentContext {
   tournament_id: string;
   tournament_name: string;
@@ -18,9 +27,12 @@ export interface TournamentContext {
   is_locked: boolean;
   is_member: boolean;
   membership_role: MembershipRole;
+  max_brackets_per_user: number;
+  user_bracket_count: number;
   bracket_id: string | null;
   bracket_name: string | null;
   bracket_updated_at: string | null;
+  brackets: TournamentBracketSummary[];
 }
 
 interface BracketRow {
@@ -48,9 +60,51 @@ export interface LoadedBracket {
   state: AppState;
 }
 
+interface RawTournamentContext extends Omit<TournamentContext, 'brackets' | 'max_brackets_per_user' | 'user_bracket_count'> {
+  max_brackets_per_user?: number | null;
+  user_bracket_count?: number | null;
+  brackets?: unknown;
+}
+
 function normalizeStep(step: string | null | undefined): AppStep {
   const valid: AppStep[] = ['intro', 'groups', 'third-place', 'bracket'];
   return valid.includes(step as AppStep) ? (step as AppStep) : 'groups';
+}
+
+function normalizeBracketSummaries(value: unknown): TournamentBracketSummary[] {
+  if (!Array.isArray(value)) return [];
+
+  return value
+    .filter((item): item is Record<string, unknown> => Boolean(item) && typeof item === 'object')
+    .map(item => ({
+      id: String(item.id ?? ''),
+      name: String(item.name ?? ''),
+      current_step: normalizeStep(String(item.current_step ?? 'groups')),
+      furthest_step: normalizeStep(String(item.furthest_step ?? 'groups')),
+      created_at: String(item.created_at ?? ''),
+      updated_at: String(item.updated_at ?? ''),
+    }))
+    .filter(item => item.id);
+}
+
+function normalizeTournamentContext(row: RawTournamentContext): TournamentContext {
+  const brackets = normalizeBracketSummaries(row.brackets);
+  const fallbackBrackets = brackets.length === 0 && row.bracket_id
+    ? [{
+        id: row.bracket_id,
+        name: row.bracket_name ?? 'Bracket',
+        current_step: 'groups' as AppStep,
+        furthest_step: 'groups' as AppStep,
+        created_at: row.bracket_updated_at ?? '',
+        updated_at: row.bracket_updated_at ?? '',
+      }]
+    : brackets;
+  return {
+    ...row,
+    max_brackets_per_user: Number(row.max_brackets_per_user ?? 1),
+    user_bracket_count: Number(row.user_bracket_count ?? fallbackBrackets.length),
+    brackets: fallbackBrackets,
+  };
 }
 
 function mergeMatches(savedMatches: unknown): Record<string, Match> {
@@ -87,7 +141,7 @@ export async function upsertProfile(user: User): Promise<string | null> {
 export async function getUserTournamentContexts(): Promise<{ data: TournamentContext[]; error: string | null }> {
   const { data, error } = await supabase.rpc('get_user_tournament_contexts');
   return {
-    data: (data ?? []) as TournamentContext[],
+    data: ((data ?? []) as RawTournamentContext[]).map(normalizeTournamentContext),
     error: error?.message ?? null,
   };
 }
@@ -108,14 +162,14 @@ export async function joinPrivateTournamentByName(inputName: string): Promise<st
   return error?.message ?? null;
 }
 
-export async function fetchBracketForTournament(
-  tournamentId: string,
+export async function fetchBracketById(
+  bracketId: string,
   userId: string,
 ): Promise<{ data: LoadedBracket | null; error: string | null }> {
   const { data: bracketRow, error: bracketError } = await supabase
     .from('brackets')
     .select('id, name, current_step, furthest_step')
-    .eq('tournament_id', tournamentId)
+    .eq('id', bracketId)
     .eq('user_id', userId)
     .maybeSingle();
 
@@ -182,29 +236,14 @@ export async function fetchBracketForTournament(
   };
 }
 
-export async function upsertBracketShell(params: {
-  bracketId?: string | null;
+export async function createTournamentBracket(params: {
   tournamentId: string;
-  userId: string;
   name: string;
 }): Promise<{ bracketId: string | null; error: string | null }> {
-  // Omit current_step / furthest_step so the table defaults apply on INSERT
-  // and existing values are preserved on UPDATE — autosave is the source of
-  // truth for step progression.
-  const payload = {
-    ...(params.bracketId ? { id: params.bracketId } : {}),
-    tournament_id: params.tournamentId,
-    user_id: params.userId,
-    name: params.name,
-  };
-
-  const { data, error } = await supabase
-    .from('brackets')
-    .upsert(payload, {
-      onConflict: 'tournament_id,user_id',
-    })
-    .select('id')
-    .single();
+  const { data, error } = await supabase.rpc('create_tournament_bracket', {
+    p_tournament_id: params.tournamentId,
+    p_name: params.name,
+  });
 
   return {
     bracketId: (data?.id as string | undefined) ?? null,
@@ -297,6 +336,7 @@ export interface TournamentOverviewRow {
   is_locked: boolean;
   edition_id: string;
   edition_name: string;
+  max_brackets_per_user: number;
   member_count: number;
   bracket_count: number;
   created_at: string;
@@ -379,6 +419,7 @@ export interface TournamentRow {
   status: TournamentStatus;
   starts_at: string | null;
   locks_at: string;
+  max_brackets_per_user: number;
 }
 
 export interface AdminBracketRow {
@@ -508,6 +549,7 @@ export async function adminUpsertTournament(params: {
   starts_at: string | null;
   locks_at: string;
   edition_id?: string | null;
+  max_brackets_per_user: number;
 }): Promise<{ data: TournamentRow | null; error: string | null }> {
   const { data, error } = await supabase.rpc('admin_upsert_tournament', {
     p_id: params.id,
@@ -517,6 +559,7 @@ export async function adminUpsertTournament(params: {
     p_starts_at: params.starts_at,
     p_locks_at: params.locks_at,
     p_edition_id: params.edition_id ?? null,
+    p_max_brackets_per_user: params.max_brackets_per_user,
   });
   return {
     data: (data as TournamentRow | null) ?? null,

@@ -1,22 +1,27 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useApp } from '../context/AppContext';
-
-type Status = 'idle' | 'saving' | 'saved';
 
 export function SaveStatus() {
   const { isSaving, persistError } = useApp();
-  const [status, setStatus] = useState<Status>('idle');
+  const [showSaved, setShowSaved] = useState(false);
+  const wasSavingRef = useRef(false);
 
   useEffect(() => {
     if (isSaving) {
-      setStatus('saving');
+      wasSavingRef.current = true;
       return;
     }
-    if (status !== 'saving') return;
-    setStatus('saved');
-    const timer = window.setTimeout(() => setStatus('idle'), 1200);
-    return () => window.clearTimeout(timer);
-  }, [isSaving, status]);
+
+    if (!wasSavingRef.current) return;
+    wasSavingRef.current = false;
+
+    const savedTimer = window.setTimeout(() => setShowSaved(true), 0);
+    const idleTimer = window.setTimeout(() => setShowSaved(false), 1200);
+    return () => {
+      window.clearTimeout(savedTimer);
+      window.clearTimeout(idleTimer);
+    };
+  }, [isSaving]);
 
   if (persistError) {
     return (
@@ -27,7 +32,9 @@ export function SaveStatus() {
     );
   }
 
-  if (status === 'idle') return null;
+  if (!isSaving && !showSaved) return null;
+
+  const status = isSaving ? 'saving' : 'saved';
 
   return (
     <div className={`save-status save-status-${status}`} role="status" aria-live="polite">

@@ -164,6 +164,7 @@ export function AdminHome() {
                   <th>Edition</th>
                   <th>Visibility</th>
                   <th>Status</th>
+                  <th>Bracket limit</th>
                   <th>Locks</th>
                   <th>Members</th>
                   <th>Brackets</th>
@@ -173,7 +174,7 @@ export function AdminHome() {
               <tbody>
                 {rows.length === 0 && (
                   <tr>
-                    <td colSpan={8} className="admin-empty">No tournaments yet.</td>
+                    <td colSpan={9} className="admin-empty">No tournaments yet.</td>
                   </tr>
                 )}
                 {rows.map(row => (
@@ -186,6 +187,7 @@ export function AdminHome() {
                     </td>
                     <td className="admin-cell-mono">{row.visibility}</td>
                     <td className="admin-cell-mono">{row.status}</td>
+                    <td>{row.max_brackets_per_user}</td>
                     <td>
                       {formatDate(row.locks_at)}
                       {row.is_locked && <span className="admin-pill admin-pill-warn"> Locked</span>}
@@ -223,6 +225,7 @@ function CreateTournamentForm({ editions, onCancel, onCreated, submitting, setSu
   const [startsAt, setStartsAt] = useState('');
   const [locksAt, setLocksAt] = useState('');
   const [editionId, setEditionId] = useState<string>(editions[0]?.edition_id ?? '');
+  const [maxBrackets, setMaxBrackets] = useState('1');
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async () => {
@@ -240,6 +243,11 @@ function CreateTournamentForm({ editions, onCancel, onCreated, submitting, setSu
       setError('Lock date is required.');
       return;
     }
+    const maxBracketCount = Number.parseInt(maxBrackets, 10);
+    if (!Number.isInteger(maxBracketCount) || maxBracketCount < 1) {
+      setError('Bracket limit must be at least 1.');
+      return;
+    }
     setSubmitting(true);
     const { error: rpcError } = await adminUpsertTournament({
       id: null,
@@ -249,6 +257,7 @@ function CreateTournamentForm({ editions, onCancel, onCreated, submitting, setSu
       starts_at: fromLocalInputValue(startsAt),
       locks_at: locksIso,
       edition_id: editionId,
+      max_brackets_per_user: maxBracketCount,
     });
     setSubmitting(false);
     if (rpcError) {
@@ -326,6 +335,16 @@ function CreateTournamentForm({ editions, onCancel, onCreated, submitting, setSu
             onChange={e => setLocksAt(e.target.value)}
           />
         </div>
+      </div>
+      <div className="admin-form-row">
+        <label className="form-label">Brackets per user</label>
+        <input
+          type="number"
+          min={1}
+          className="form-input"
+          value={maxBrackets}
+          onChange={e => setMaxBrackets(e.target.value)}
+        />
       </div>
       {error && <div className="admin-error">{error}</div>}
       <div className="admin-form-actions">

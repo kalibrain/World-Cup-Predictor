@@ -19,6 +19,10 @@ const lockStatusLabel = (locksAt: string, isLocked: boolean) => {
   return isLocked ? `Closed on ${formatted}` : `Open until ${formatted}`;
 };
 
+const bracketLimitLabel = (userBracketCount: number, maxBracketsPerUser: number) => (
+  maxBracketsPerUser > 1 ? ` • ${userBracketCount} / ${maxBracketsPerUser} brackets` : ''
+);
+
 export function IntroScreen() {
   const {
     selectedTournament,
@@ -30,6 +34,7 @@ export function IntroScreen() {
     isSaving,
     selectTournament,
     selectPrivateTournament,
+    openBracket,
     clearTournamentSelection,
     startBracket,
   } = useApp();
@@ -41,6 +46,7 @@ export function IntroScreen() {
   const [flowError, setFlowError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'public' | 'private'>('public');
   const [actionTournamentId, setActionTournamentId] = useState<string | null>(null);
+  const [actionBracketId, setActionBracketId] = useState<string | null>(null);
 
   const isAuthenticated = Boolean(user);
   const signedInEmail = user?.email ?? 'Google user';
@@ -83,6 +89,16 @@ export function IntroScreen() {
     setPrivateTournamentName('');
   };
 
+  const handleOpenBracket = async (bracketId: string) => {
+    setFlowError(null);
+    setActionBracketId(bracketId);
+    const error = await openBracket(bracketId);
+    setActionBracketId(null);
+    if (error) {
+      setFlowError(error);
+    }
+  };
+
   const handleCreateBracket = async () => {
     setFlowError(null);
     const error = await startBracket(name);
@@ -104,6 +120,16 @@ export function IntroScreen() {
       }
     }
   };
+
+  const canCreateBracket = Boolean(
+    selectedTournament
+      && !isLocked
+      && selectedTournament.user_bracket_count < selectedTournament.max_brackets_per_user,
+  );
+
+  const remainingBracketSlots = selectedTournament
+    ? Math.max(0, selectedTournament.max_brackets_per_user - selectedTournament.user_bracket_count)
+    : 0;
 
   return (
     <div className="intro-screen">
@@ -170,6 +196,7 @@ export function IntroScreen() {
                         {tournament.is_member ? 'Joined' : 'Public'}
                         {' • '}
                         {lockStatusLabel(tournament.locks_at, tournament.is_locked)}
+                        {bracketLimitLabel(tournament.user_bracket_count, tournament.max_brackets_per_user)}
                       </div>
                     </div>
                     <button
@@ -198,6 +225,7 @@ export function IntroScreen() {
                               Joined
                               {' • '}
                               {lockStatusLabel(tournament.locks_at, tournament.is_locked)}
+                              {bracketLimitLabel(tournament.user_bracket_count, tournament.max_brackets_per_user)}
                             </div>
                           </div>
                           <button
@@ -251,9 +279,39 @@ export function IntroScreen() {
 
             {isLocked ? (
               <div className="intro-auth-note">
-                This tournament is locked. You can view your existing bracket if one already exists.
+                This tournament is locked. You can view your existing brackets if any were created before lockout.
               </div>
-            ) : (
+            ) : selectedTournament.brackets.length > 0 ? (
+              <p className="intro-auth-note">
+                {selectedTournament.user_bracket_count} / {selectedTournament.max_brackets_per_user} bracket slots used.
+              </p>
+            ) : null}
+
+            {selectedTournament.brackets.length > 0 && (
+              <div className="tournament-list">
+                {selectedTournament.brackets.map(bracket => (
+                  <div key={bracket.id} className="tournament-card">
+                    <div>
+                      <div className="tournament-name">{bracket.name}</div>
+                      <div className="tournament-meta">
+                        Furthest step: {bracket.furthest_step}
+                        {' • '}
+                        Updated {formatLockDate(bracket.updated_at)}
+                      </div>
+                    </div>
+                    <button
+                      className="btn btn-outline btn-sm"
+                      onClick={() => void handleOpenBracket(bracket.id)}
+                      disabled={actionBracketId === bracket.id}
+                    >
+                      {actionBracketId === bracket.id ? 'Opening...' : 'Open'}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {canCreateBracket ? (
               <>
                 <label className="form-label" htmlFor="bracket-name">Name Your Bracket</label>
                 <input
@@ -272,9 +330,13 @@ export function IntroScreen() {
                   onClick={() => void handleCreateBracket()}
                   disabled={!name.trim()}
                 >
-                  Start Predicting →
+                  {selectedTournament.brackets.length > 0 ? `Create New Bracket (${remainingBracketSlots} left)` : 'Start Predicting →'}
                 </button>
               </>
+            ) : !isLocked && (
+              <div className="intro-auth-note">
+                You have reached the bracket limit for this tournament.
+              </div>
             )}
 
             <button
