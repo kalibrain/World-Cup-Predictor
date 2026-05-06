@@ -101,6 +101,9 @@ export function Header() {
               Leaderboard
             </Link>
           )}
+          <Link to="/faq" className="btn btn-outline btn-sm">
+            FAQ
+          </Link>
           {isGlobalAdmin && (
             <Link
               to={onAdminRoute ? '/' : '/admin'}
@@ -174,6 +177,14 @@ export function Header() {
               Leaderboard
             </Link>
           )}
+          <Link
+            to="/faq"
+            className="btn btn-outline"
+            role="menuitem"
+            onClick={closeMenu}
+          >
+            FAQ
+          </Link>
           {isGlobalAdmin && (
             <Link
               to={onAdminRoute ? '/' : '/admin'}

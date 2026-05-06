@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 
@@ -140,6 +141,9 @@ export function IntroScreen() {
         <p className="intro-description">
           Join a tournament, rank all 12 groups, pick your third-place qualifiers, and predict your champion.
         </p>
+        <Link to="/faq" className="btn btn-outline btn-sm intro-faq-link">
+          FAQ & Rules
+        </Link>
       </div>
 
       <div className="intro-form">
