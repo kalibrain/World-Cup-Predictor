@@ -81,8 +81,8 @@ export function Header() {
             <span className="header-trophy">⚽</span>
           </div>
           <div className="header-title-group">
-            <div className="header-subtitle">FIFA WORLD CUP</div>
-            <div className="header-title">2026 Bracket Predictor</div>
+            <div className="header-subtitle">FIFA WORLD CUP 2026</div>
+            <div className="header-title">My Bracket Picks</div>
           </div>
         </div>
 

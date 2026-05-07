@@ -136,8 +136,8 @@ export function IntroScreen() {
     <div className="intro-screen">
       <div className="intro-hero">
         <div className="intro-trophy">🏆</div>
-        <h1 className="intro-heading">FIFA World Cup 2026</h1>
-        <p className="intro-subheading">Bracket Predictor</p>
+        <h1 className="intro-heading">My Bracket Picks</h1>
+        <p className="intro-subheading">FIFA World Cup 2026 Bracket Predictor</p>
         <p className="intro-description">
           Join a tournament, rank all 12 groups, pick your third-place qualifiers, and predict your champion.
         </p>
