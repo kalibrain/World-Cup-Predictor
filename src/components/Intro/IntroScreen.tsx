@@ -144,6 +144,11 @@ export function IntroScreen() {
         <Link to="/faq" className="btn btn-outline btn-sm intro-faq-link">
           FAQ & Rules
         </Link>
+        <div className="intro-legal-links" aria-label="Legal links">
+          <Link to="/privacy">Privacy Policy</Link>
+          <span aria-hidden="true">•</span>
+          <Link to="/terms">Terms Of Service</Link>
+        </div>
       </div>
 
       <div className="intro-form">

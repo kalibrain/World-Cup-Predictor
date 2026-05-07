@@ -671,6 +671,26 @@ html, body {
   margin-top: 18px;
 }
 
+.intro-legal-links {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.intro-legal-links a {
+  color: var(--text-secondary);
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.intro-legal-links a:hover {
+  color: var(--gold);
+}
+
 .intro-form {
   background: var(--card);
   border: 1px solid var(--border);
