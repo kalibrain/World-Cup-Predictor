@@ -49,6 +49,10 @@ function normalizeName(value: string): string {
   return value.trim().toLowerCase().replace(/\s+/g, ' ');
 }
 
+function lockedWithoutBracket(tournament: TournamentContext): boolean {
+  return tournament.is_locked && tournament.brackets.length === 0;
+}
+
 interface AppContextValue {
   state: AppState;
   isLocked: boolean;
@@ -174,6 +178,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [computeSnapshotKeys, user]);
 
   const selectTournamentContext = useCallback(async (tournament: TournamentContext): Promise<string | null> => {
+    if (lockedWithoutBracket(tournament)) {
+      const message = 'This tournament is closed and you do not have a bracket to view.';
+      setTournamentError(message);
+      return message;
+    }
+
     const onlyExistingBracket = tournament.brackets[0];
     if (tournament.max_brackets_per_user === 1 && tournament.user_bracket_count === 1 && onlyExistingBracket) {
       const error = await openBracket(onlyExistingBracket.id);
@@ -197,6 +207,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     const current = tournaments.find(t => t.tournament_id === tournamentId);
     if (!current) return 'Tournament not found.';
+    if (lockedWithoutBracket(current)) {
+      const message = 'This tournament is closed and you do not have a bracket to view.';
+      setTournamentError(message);
+      return message;
+    }
 
     if (!current.is_member) {
       if (current.visibility === 'private') {

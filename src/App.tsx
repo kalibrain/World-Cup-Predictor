@@ -1,3 +1,4 @@
+import { useLayoutEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AppProvider, useApp } from './context/AppContext';
 import { AuthProvider } from './context/AuthContext';
@@ -18,6 +19,11 @@ import './App.css';
 
 function PredictorShell() {
   const { state, goToStep } = useApp();
+
+  useLayoutEffect(() => {
+    if (state.step === 'intro') return;
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }, [state.step]);
 
   const renderStep = () => {
     switch (state.step) {

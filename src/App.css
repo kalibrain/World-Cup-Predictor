@@ -1404,6 +1404,10 @@ html, body {
   gap: 0.65rem;
 }
 
+.new-bracket-form {
+  margin-top: 24px;
+}
+
 .tournament-card {
   display: flex;
   justify-content: space-between;
@@ -2566,12 +2570,24 @@ html, body {
     visibility: visible;
   }
 
+  .app-header,
+  .progress-bar-container,
+  .bracket-screen > :not(.print-view),
+  .save-status {
+    display: none !important;
+  }
+
+  .app,
+  .app-main,
+  .bracket-screen {
+    display: block !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+  }
+
   .print-view {
     display: block;
-    position: absolute;
-    inset: 0;
-    left: 0;
-    top: 0;
+    position: static;
     width: 100%;
     opacity: 1;
     pointer-events: auto;
@@ -2671,6 +2687,11 @@ html, body {
 
   .print-section-bracket {
     page-break-before: always;
+    break-before: page;
+    page-break-inside: avoid;
+    break-inside: avoid;
+    page-break-after: avoid;
+    break-after: avoid;
   }
 
   /* Groups */
@@ -2768,6 +2789,8 @@ html, body {
     grid-template-columns: 1.4fr 1fr 1fr 1fr 1.1fr;
     gap: 6px;
     align-items: stretch;
+    page-break-inside: avoid;
+    break-inside: avoid;
   }
 
   .print-round-col {
@@ -2876,7 +2899,7 @@ html, body {
   }
 
   .print-slot-loser {
-    color: #999;
+    color: #555;
   }
 
   .print-slot-name {

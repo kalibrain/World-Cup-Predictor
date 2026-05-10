@@ -24,6 +24,10 @@ const bracketLimitLabel = (userBracketCount: number, maxBracketsPerUser: number)
   maxBracketsPerUser > 1 ? ` • ${userBracketCount} / ${maxBracketsPerUser} brackets` : ''
 );
 
+const cannotSelectClosedTournament = (tournament: { is_locked: boolean; brackets: unknown[] }) => (
+  tournament.is_locked && tournament.brackets.length === 0
+);
+
 export function IntroScreen() {
   const {
     selectedTournament,
@@ -53,12 +57,18 @@ export function IntroScreen() {
   const signedInEmail = user?.email ?? 'Google user';
 
   const publicTournaments = useMemo(
-    () => tournaments.filter(tournament => tournament.visibility === 'public'),
+    () => tournaments.filter(tournament => (
+      tournament.visibility === 'public' && !cannotSelectClosedTournament(tournament)
+    )),
     [tournaments],
   );
 
   const joinedPrivateTournaments = useMemo(
-    () => tournaments.filter(t => t.visibility === 'private' && t.is_member),
+    () => tournaments.filter(tournament => (
+      tournament.visibility === 'private'
+      && tournament.is_member
+      && !cannotSelectClosedTournament(tournament)
+    )),
     [tournaments],
   );
 
@@ -321,7 +331,7 @@ export function IntroScreen() {
             )}
 
             {canCreateBracket ? (
-              <>
+              <div className="new-bracket-form">
                 <label className="form-label" htmlFor="bracket-name">Name Your Bracket</label>
                 <input
                   id="bracket-name"
@@ -341,7 +351,7 @@ export function IntroScreen() {
                 >
                   {selectedTournament.brackets.length > 0 ? `Create New Bracket (${remainingBracketSlots} left)` : 'Start Predicting →'}
                 </button>
-              </>
+              </div>
             ) : !isLocked && (
               <div className="intro-auth-note">
                 You have reached the bracket limit for this tournament.
