@@ -154,11 +154,6 @@ export function IntroScreen() {
         <Link to="/faq" className="btn btn-outline btn-sm intro-faq-link">
           FAQ & Rules
         </Link>
-        <div className="intro-legal-links" aria-label="Legal links">
-          <Link to="/privacy">Privacy Policy</Link>
-          <span aria-hidden="true">•</span>
-          <Link to="/terms">Terms Of Service</Link>
-        </div>
       </div>
 
       <div className="intro-form">
@@ -373,6 +368,17 @@ export function IntroScreen() {
         )}
 
         {isSaving && <p className="intro-auth-note">Saving your latest picks...</p>}
+
+        <div className="intro-card-footer">
+          <p className="intro-attribution">
+            MyBracketPicks is brought to you by Wettmeisters Tayfun and Kali.
+          </p>
+          <div className="intro-legal-links" aria-label="Legal links">
+            <Link to="/privacy">Privacy Policy</Link>
+            <span aria-hidden="true">•</span>
+            <Link to="/terms">Terms Of Service</Link>
+          </div>
+        </div>
       </div>
 
     </div>

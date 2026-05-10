@@ -671,6 +671,18 @@ html, body {
   margin-top: 18px;
 }
 
+.intro-card-footer {
+  border-top: 1px solid var(--border-soft);
+  margin-top: 28px;
+  padding-top: 18px;
+}
+
+.intro-attribution {
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+}
+
 .intro-legal-links {
   display: flex;
   justify-content: center;

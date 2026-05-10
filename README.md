@@ -1,73 +1,113 @@
-# React + TypeScript + Vite
+# My Bracket Picks
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+My Bracket Picks is a World Cup 2026 tournament predictor built for friends, families, and private groups who want to create and compare full bracket predictions.
 
-Currently, two official plugins are available:
+Users sign in with Google, join a public or private tournament, rank every group, choose the third-place qualifiers, fill out the knockout bracket, and save their picks for later. Once a tournament locks, brackets become read-only and can be viewed or exported as a printable PDF.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Features
 
-## React Compiler
+- Google sign-in through Supabase Auth
+- Public and private tournament access
+- Multiple brackets per user when a tournament allows it
+- Drag-and-drop group-stage rankings
+- Third-place qualifier selection
+- Full knockout bracket prediction flow
+- Autosaved bracket progress
+- Read-only mode after tournament lock
+- Printable bracket PDF view
+- Admin views for tournament management and standings
+- Supabase-backed persistence with Postgres and RLS
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Tech Stack
 
-## Expanding the ESLint configuration
+- React 19
+- TypeScript
+- Vite 8
+- Supabase Auth and Postgres
+- `@dnd-kit` for drag-and-drop interactions
+- ESLint flat config
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Getting Started
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+Install dependencies:
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Create a local environment file:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+cp .env.example .env.local
 ```
+
+Add your Supabase browser keys:
+
+```bash
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=your-publishable-key
+```
+
+Start the development server:
+
+```bash
+npm run dev
+```
+
+The app runs at `http://localhost:5173`.
+
+## Scripts
+
+```bash
+npm run dev              # Start the Vite dev server
+npm run build            # Type-check and build for production
+npm run lint             # Run ESLint
+npm run preview          # Preview the production build
+npm run seed:tournaments # Seed Supabase tournaments from .env.local
+```
+
+## Supabase Setup
+
+The app expects Supabase to provide Auth, Postgres persistence, RPCs, and row-level security policies. SQL migrations live in `supabase/migrations/`.
+
+Local secrets belong in `.env.local`, which is gitignored. Only `VITE_` variables are exposed to the browser. Service-role keys are for local/admin scripts only and should never be imported into `src/`.
+
+To seed tournaments locally, configure:
+
+```bash
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+SEED_ADMIN_USER_IDS=uuid1,uuid2
+```
+
+Then run:
+
+```bash
+npm run seed:tournaments
+```
+
+## Project Structure
+
+```text
+src/
+  components/   UI for intro, groups, bracket, sharing, admin, and leaderboard views
+  context/      App state and auth context providers
+  data/         Static team and bracket data
+  lib/          Supabase client and persistence helpers
+  utils/        Bracket and URL helpers
+supabase/
+  migrations/   Append-only database migrations
+scripts/
+  seed-tournaments.mjs
+docs/
+  Planning and implementation notes
+```
+
+## Build Check
+
+Before opening a pull request or shipping a meaningful change, run:
+
+```bash
+npm run build
+```
+
+This runs `tsc -b` before the production Vite build, which catches type errors that the dev server may not surface.
