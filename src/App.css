@@ -1164,6 +1164,18 @@ html, body {
   cursor: not-allowed;
 }
 
+.new-entry-row {
+  margin-top: 10px;
+  display: flex;
+  justify-content: center;
+}
+
+.new-entry-btn {
+  padding: 10px 22px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
 .bracket-scroll-container {
   overflow-x: auto;
   padding: 0 16px 32px;

@@ -72,6 +72,7 @@ interface AppContextValue {
   setTotalGoals: (value: number | null) => void;
   setTopScorer: (value: string) => void;
   startBracket: (name: string) => Promise<string | null>;
+  startNewBracketEntry: () => Promise<string | null>;
   updateGroupRankings: (groupId: string, rankings: string[]) => void;
   markGroupComplete: (groupId: string) => void;
   goToThirdPlace: () => void;
@@ -348,6 +349,60 @@ export function AppProvider({ children }: { children: ReactNode }) {
     void refreshTournaments();
     return null;
   }, [refreshTournaments, selectedTournament, user]);
+
+  const startNewBracketEntry = useCallback(async (): Promise<string | null> => {
+    if (!user) return 'You need to sign in first.';
+    if (!selectedTournament) return 'Select a tournament first.';
+    if (selectedTournament.is_locked) return 'This tournament is already locked.';
+    if (selectedTournament.max_brackets_per_user <= 1) return 'This tournament only allows one bracket.';
+    if (selectedTournament.user_bracket_count >= selectedTournament.max_brackets_per_user) {
+      return 'Bracket limit reached for this tournament.';
+    }
+
+    if (saveTimer.current) {
+      window.clearTimeout(saveTimer.current);
+      saveTimer.current = null;
+    }
+
+    if (bracketId) {
+      const currentKeys = computeSnapshotKeys(state);
+      const last = lastSavedRef.current;
+      const lastKeys = last && last.bracketId === bracketId ? last.keys : null;
+      const dirtyGroupIds = Object.keys(currentKeys.groupKeys).filter(
+        id => !lastKeys || currentKeys.groupKeys[id] !== lastKeys.groupKeys[id],
+      );
+      const knockoutChanged = !lastKeys || currentKeys.knockoutKey !== lastKeys.knockoutKey;
+      const metaChanged = !lastKeys || currentKeys.metaKey !== lastKeys.metaKey;
+
+      if (dirtyGroupIds.length > 0 || knockoutChanged || metaChanged) {
+        setIsSaving(true);
+        const error = await saveBracketSnapshot({
+          bracketId,
+          bracketName: state.bracketName,
+          state,
+          dirtyGroupIds,
+          knockoutChanged,
+          metaChanged,
+        });
+        setIsSaving(false);
+
+        if (error) {
+          setPersistError(error);
+          return error;
+        }
+
+        setPersistError(null);
+        lastSavedRef.current = { bracketId, keys: currentKeys };
+      }
+    }
+
+    setTournamentError(null);
+    setBracketId(null);
+    lastSavedRef.current = null;
+    setState(buildInitialState());
+    void refreshTournaments();
+    return null;
+  }, [bracketId, computeSnapshotKeys, refreshTournaments, selectedTournament, state, user]);
 
   const updateGroupRankings = useCallback((groupId: string, rankings: string[]) => {
     if (isReadOnly) return;
@@ -762,6 +817,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setTotalGoals,
     setTopScorer,
     startBracket,
+    startNewBracketEntry,
     updateGroupRankings,
     markGroupComplete,
     goToThirdPlace,
@@ -791,6 +847,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setTotalGoals,
     setTopScorer,
     startBracket,
+    startNewBracketEntry,
     updateGroupRankings,
     markGroupComplete,
     goToThirdPlace,

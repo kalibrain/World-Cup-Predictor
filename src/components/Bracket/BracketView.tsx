@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useAppOrNull } from '../../context/AppContext';
 import { BracketMatch } from './BracketMatch';
 import { BracketPrintView } from './BracketPrintView';
@@ -50,6 +51,7 @@ interface BracketViewProps {
 }
 
 export function BracketView(props: BracketViewProps = {}) {
+  const [isStartingNewEntry, setIsStartingNewEntry] = useState(false);
   const app = useAppOrNull();
   const matches = props.matches ?? app?.state.matches ?? {};
   const totalGoals = props.totalGoals ?? app?.state.totalGoals ?? null;
@@ -75,6 +77,26 @@ export function BracketView(props: BracketViewProps = {}) {
   const championTeam = champion ? TEAM_MAP[champion] : null;
   const bracketComplete = isUserBracket
     && Object.values(matches).every(m => Boolean(m.winnerId));
+  const canCreateAnotherEntry = Boolean(
+    isUserBracket
+      && bracketComplete
+      && app?.selectedTournament
+      && app.selectedTournament.max_brackets_per_user > 1
+      && app.selectedTournament.user_bracket_count < app.selectedTournament.max_brackets_per_user
+      && !app.isLocked,
+  );
+  const remainingEntrySlots = app?.selectedTournament
+    ? Math.max(0, app.selectedTournament.max_brackets_per_user - app.selectedTournament.user_bracket_count)
+    : 0;
+
+  const handleStartNewEntry = async () => {
+    if (!app) return;
+    setIsStartingNewEntry(true);
+    const error = await app.startNewBracketEntry();
+    if (error) {
+      setIsStartingNewEntry(false);
+    }
+  };
 
   return (
     <div className="bracket-screen">
@@ -97,6 +119,18 @@ export function BracketView(props: BracketViewProps = {}) {
                 ⬇ Download PDF
               </button>
             )}
+          </div>
+        )}
+        {canCreateAnotherEntry && (
+          <div className="new-entry-row">
+            <button
+              type="button"
+              className="btn btn-outline new-entry-btn"
+              onClick={() => void handleStartNewEntry()}
+              disabled={isStartingNewEntry}
+            >
+              {isStartingNewEntry ? 'Preparing...' : `Create New Bracket (${remainingEntrySlots} left)`}
+            </button>
           </div>
         )}
       </div>
