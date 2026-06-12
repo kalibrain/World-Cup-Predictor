@@ -214,9 +214,13 @@ export function LeaderboardPage() {
   const tournamentId = selectedTournament?.tournament_id ?? null;
   const leaderboardUnlocked = Boolean(selectedTournament?.is_locked);
   const currentBracketComplete = isBracketComplete(state);
+  const hasSavedBracketAtFinalStep = Boolean(
+    selectedTournament?.brackets.some(bracket => bracket.furthest_step === 'bracket'),
+  );
+  const canViewLeaderboard = currentBracketComplete || hasSavedBracketAtFinalStep;
 
   const refresh = useCallback(async () => {
-    if (!tournamentId || !leaderboardUnlocked || !currentBracketComplete) {
+    if (!tournamentId || !leaderboardUnlocked || !canViewLeaderboard) {
       setLoading(false);
       return;
     }
@@ -230,7 +234,7 @@ export function LeaderboardPage() {
       setPublishedAt(pubAt);
     }
     setLoading(false);
-  }, [currentBracketComplete, leaderboardUnlocked, tournamentId]);
+  }, [canViewLeaderboard, leaderboardUnlocked, tournamentId]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -279,7 +283,7 @@ export function LeaderboardPage() {
     );
   }
 
-  if (!currentBracketComplete) {
+  if (!canViewLeaderboard) {
     return (
       <main className="app-main">
         <div className="leaderboard-page">
@@ -336,6 +340,7 @@ export function LeaderboardPage() {
                     <th>Bracket</th>
                     <th>Finalists</th>
                     <th>Champion</th>
+                    <th>Goals</th>
                     <th>Total</th>
                     <th>View</th>
                   </tr>
@@ -344,7 +349,7 @@ export function LeaderboardPage() {
                   {rows.map(row => {
                     const isMe = row.user_id === user.id;
                     return (
-                      <tr key={row.user_id} className={isMe ? 'leaderboard-row-me' : undefined}>
+                      <tr key={row.bracket_id ?? row.user_id} className={isMe ? 'leaderboard-row-me' : undefined}>
                         <td className="leaderboard-rank">{row.rank_position}</td>
                         <td>
                           {displayName(row)}
@@ -353,6 +358,7 @@ export function LeaderboardPage() {
                         <td>{row.bracket_name ?? <span className="admin-cell-secondary">—</span>}</td>
                         <td><FinalistsCell row={row} /></td>
                         <td><TeamName teamId={row.predicted_champion} /></td>
+                        <td>{row.predicted_total_goals ?? <span className="admin-cell-secondary">—</span>}</td>
                         <td className="leaderboard-total">{row.total_points}</td>
                         <td>
                           {row.bracket_id && (
@@ -376,7 +382,7 @@ export function LeaderboardPage() {
               {rows.map(row => {
                 const isMe = row.user_id === user.id;
                 return (
-                  <li key={row.user_id} className={`leaderboard-card ${isMe ? 'leaderboard-row-me' : ''}`}>
+                  <li key={row.bracket_id ?? row.user_id} className={`leaderboard-card ${isMe ? 'leaderboard-row-me' : ''}`}>
                     <div className="leaderboard-card-top">
                       <div className="leaderboard-card-rank">#{row.rank_position}</div>
                       <div className="leaderboard-card-name">
@@ -387,6 +393,7 @@ export function LeaderboardPage() {
                     </div>
                     <div className="leaderboard-card-meta">
                       <span>{row.bracket_name ?? '—'}</span>
+                      <span>Goals: {row.predicted_total_goals ?? '—'}</span>
                       <MobileFinalPick row={row} />
                     </div>
                     {row.bracket_id && (

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 
@@ -28,6 +28,11 @@ const cannotSelectClosedTournament = (tournament: { is_locked: boolean; brackets
   tournament.is_locked && tournament.brackets.length === 0
 );
 
+const tournamentActionLabel = (bracketCount: number) => {
+  if (bracketCount === 0) return 'Create Bracket';
+  return bracketCount === 1 ? 'View Bracket' : 'View Brackets';
+};
+
 export function IntroScreen() {
   const {
     selectedTournament,
@@ -38,35 +43,26 @@ export function IntroScreen() {
     isLocked,
     isSaving,
     selectTournament,
-    selectPrivateTournament,
     openBracket,
     clearTournamentSelection,
     startBracket,
   } = useApp();
   const { user, isLoading, signInWithGoogle } = useAuth();
+  const navigate = useNavigate();
 
   const [name, setName] = useState('');
-  const [privateTournamentName, setPrivateTournamentName] = useState('');
   const [authError, setAuthError] = useState<string | null>(null);
   const [flowError, setFlowError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'public' | 'private'>('public');
   const [actionTournamentId, setActionTournamentId] = useState<string | null>(null);
+  const [leaderboardTournamentId, setLeaderboardTournamentId] = useState<string | null>(null);
   const [actionBracketId, setActionBracketId] = useState<string | null>(null);
 
   const isAuthenticated = Boolean(user);
   const signedInEmail = user?.email ?? 'Google user';
 
-  const publicTournaments = useMemo(
+  const joinedTournaments = useMemo(
     () => tournaments.filter(tournament => (
-      tournament.visibility === 'public' && !cannotSelectClosedTournament(tournament)
-    )),
-    [tournaments],
-  );
-
-  const joinedPrivateTournaments = useMemo(
-    () => tournaments.filter(tournament => (
-      tournament.visibility === 'private'
-      && tournament.is_member
+      tournament.is_member
       && !cannotSelectClosedTournament(tournament)
     )),
     [tournaments],
@@ -90,14 +86,16 @@ export function IntroScreen() {
     }
   };
 
-  const handleJoinPrivateTournament = async () => {
+  const handleOpenLeaderboard = async (tournamentId: string) => {
     setFlowError(null);
-    const error = await selectPrivateTournament(privateTournamentName);
+    setLeaderboardTournamentId(tournamentId);
+    const error = await selectTournament(tournamentId);
+    setLeaderboardTournamentId(null);
     if (error) {
       setFlowError(error);
       return;
     }
-    setPrivateTournamentName('');
+    navigate('/leaderboard');
   };
 
   const handleOpenBracket = async (bracketId: string) => {
@@ -124,10 +122,6 @@ export function IntroScreen() {
     if (e.key === 'Enter') {
       if (selectedTournament) {
         void handleCreateBracket();
-        return;
-      }
-      if (activeTab === 'private') {
-        void handleJoinPrivateTournament();
       }
     }
   };
@@ -161,7 +155,7 @@ export function IntroScreen() {
           <>
             <div className="intro-auth-title">Sign in to continue</div>
             <p className="intro-auth-note">
-              Sign in with Google, then pick your public or private tournament before creating your bracket.
+              Sign in with Google, then pick one of your tournaments before creating your bracket.
             </p>
             <button
               className="btn btn-gold btn-lg"
@@ -181,104 +175,46 @@ export function IntroScreen() {
               Signed in as <span className="intro-user-pill">{signedInEmail}</span>
             </p>
 
-            <div className="tournament-tab-row">
-              <button
-                className={`btn btn-sm ${activeTab === 'public' ? 'btn-gold' : 'btn-outline'}`}
-                onClick={() => setActiveTab('public')}
-              >
-                Public
-              </button>
-              <button
-                className={`btn btn-sm ${activeTab === 'private' ? 'btn-gold' : 'btn-outline'}`}
-                onClick={() => setActiveTab('private')}
-              >
-                Private
-              </button>
-            </div>
-
-            {activeTab === 'public' && (
-              <div className="tournament-list">
-                {isLoadingTournaments && <p className="intro-auth-note">Loading tournaments...</p>}
-                {!isLoadingTournaments && publicTournaments.length === 0 && (
-                  <p className="intro-auth-note">No public tournaments are available yet.</p>
-                )}
-                {publicTournaments.map(tournament => (
+            <div className="tournament-list">
+              {isLoadingTournaments && <p className="intro-auth-note">Loading tournaments...</p>}
+              {!isLoadingTournaments && joinedTournaments.length === 0 && (
+                <p className="intro-auth-note">You have not joined any tournaments yet.</p>
+              )}
+              {joinedTournaments.map(tournament => {
+                const canOpenLeaderboard = tournament.is_locked && tournament.brackets.length > 0;
+                return (
                   <div key={tournament.tournament_id} className="tournament-card">
-                    <div>
+                    <div className="tournament-card-main">
                       <div className="tournament-name">{tournament.tournament_name}</div>
                       <div className="tournament-meta">
-                        {tournament.is_member ? 'Joined' : 'Public'}
-                        {' • '}
                         {lockStatusLabel(tournament.locks_at, tournament.is_locked)}
                         {bracketLimitLabel(tournament.user_bracket_count, tournament.max_brackets_per_user)}
                       </div>
                     </div>
-                    <button
-                      className="btn btn-outline btn-sm"
-                      onClick={() => void handleSelectTournament(tournament.tournament_id)}
-                      disabled={actionTournamentId === tournament.tournament_id}
-                    >
-                      {actionTournamentId === tournament.tournament_id ? 'Opening...' : 'Select'}
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {activeTab === 'private' && (
-              <>
-                {joinedPrivateTournaments.length > 0 && (
-                  <>
-                    <div className="form-label">Private tournaments you're already part of</div>
-                    <div className="tournament-list">
-                      {joinedPrivateTournaments.map(tournament => (
-                        <div key={tournament.tournament_id} className="tournament-card">
-                          <div>
-                            <div className="tournament-name">{tournament.tournament_name}</div>
-                            <div className="tournament-meta">
-                              Joined
-                              {' • '}
-                              {lockStatusLabel(tournament.locks_at, tournament.is_locked)}
-                              {bracketLimitLabel(tournament.user_bracket_count, tournament.max_brackets_per_user)}
-                            </div>
-                          </div>
-                          <button
-                            className="btn btn-outline btn-sm"
-                            onClick={() => void handleSelectTournament(tournament.tournament_id)}
-                            disabled={actionTournamentId === tournament.tournament_id}
-                          >
-                            {actionTournamentId === tournament.tournament_id ? 'Opening...' : 'Select'}
-                          </button>
-                        </div>
-                      ))}
+                    <div className="tournament-card-actions">
+                      {canOpenLeaderboard && (
+                        <button
+                          className="btn btn-outline btn-sm"
+                          onClick={() => void handleOpenLeaderboard(tournament.tournament_id)}
+                          disabled={leaderboardTournamentId === tournament.tournament_id}
+                        >
+                          {leaderboardTournamentId === tournament.tournament_id ? 'Opening...' : 'Leaderboard'}
+                        </button>
+                      )}
+                      <button
+                        className="btn btn-outline btn-sm"
+                        onClick={() => void handleSelectTournament(tournament.tournament_id)}
+                        disabled={actionTournamentId === tournament.tournament_id}
+                      >
+                        {actionTournamentId === tournament.tournament_id
+                          ? 'Opening...'
+                          : tournamentActionLabel(tournament.brackets.length)}
+                      </button>
                     </div>
-                  </>
-                )}
-                <label
-                  className="form-label"
-                  htmlFor="private-tournament-name"
-                  style={joinedPrivateTournaments.length > 0 ? { marginTop: 24 } : undefined}
-                >
-                  {joinedPrivateTournaments.length > 0 ? 'Or Join Another Private Tournament' : 'Enter Exact Private Tournament Name'}
-                </label>
-                <input
-                  id="private-tournament-name"
-                  className="form-input"
-                  type="text"
-                  value={privateTournamentName}
-                  placeholder="Exact name shared by your organizer"
-                  onChange={e => setPrivateTournamentName(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                />
-                <button
-                  className="btn btn-gold btn-lg"
-                  onClick={() => void handleJoinPrivateTournament()}
-                  disabled={!privateTournamentName.trim()}
-                >
-                  Join Private Tournament
-                </button>
-              </>
-            )}
+                  </div>
+                );
+              })}
+            </div>
           </>
         )}
 
@@ -287,8 +223,6 @@ export function IntroScreen() {
             <div className="intro-auth-title">Tournament Selected</div>
             <p className="intro-auth-note">
               <span className="intro-user-pill">{selectedTournament.tournament_name}</span>
-              {' '}
-              ({selectedTournament.visibility})
             </p>
 
             {isLocked ? (
